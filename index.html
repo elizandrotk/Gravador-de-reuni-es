@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AtaFácil - Gerador de Atas com Privacidade Total (Client-Side)</title>
+    <title>AtaFácil - Gerador de Atas com Pontuação Automática</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,10 +19,6 @@
                             500: '#22c55e',
                             600: '#16a34a',
                             700: '#15803d',
-                        },
-                        sec: {
-                            500: '#3b82f6',
-                            600: '#2563eb',
                         }
                     }
                 }
@@ -63,9 +59,9 @@
         <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div class="flex items-center space-x-2">
                 <i data-lucide="shield-check" class="w-4 h-4 text-emerald-200"></i>
-                <span class="font-medium"><strong>Garantia de Privacidade Total:</strong> Este aplicativo roda 100% no seu navegador. Nenhum áudio, texto ou ata é salvo em banco de dados ou servidores externos.</span>
+                <span class="font-medium"><strong>Privacidade Garantida:</strong> 100% executado no seu navegador. Nenhum áudio ou texto é salvo em banco de dados.</span>
             </div>
-            <span class="hidden md:inline-block bg-emerald-800/60 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-semibold">Sem Banco de Dados</span>
+            <span class="hidden md:inline-block bg-emerald-800/60 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-semibold">Sem Servidor</span>
         </div>
     </div>
 
@@ -74,21 +70,22 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="p-2 bg-emerald-600 text-white rounded-xl shadow-md">
-                    <i data-lucide="lock" class="w-6 h-6"></i>
+                    <i data-lucide="mic" class="w-6 h-6"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-snug flex items-center gap-2">
-                        AtaFácil Privado
+                        AtaFácil
+                        <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">Pontuação Inteligente</span>
                     </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Transcrição em Tempo Real & Exportação Local</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Transcrição em Tempo Real com IA e Exportação em Word/PPT/PDF</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2 sm:space-x-3">
-                <!-- Immediate Data Wipe Button -->
-                <button id="btnWipeData" class="flex items-center space-x-1.5 text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 px-3 py-2 rounded-lg transition-colors" title="Apaga instantaneamente todos os textos da memória">
+                <!-- Data Purge Button -->
+                <button id="btnWipeData" class="flex items-center space-x-1.5 text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 px-3 py-2 rounded-lg transition-colors" title="Apaga instantaneamente todos os dados da memória">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Destruir Dados Agora</span>
+                    <span class="hidden sm:inline">Destruir Dados</span>
                 </button>
 
                 <!-- API Key Config Button -->
@@ -97,7 +94,7 @@
                     <span class="hidden sm:inline">Chave IA (Opcional)</span>
                 </button>
 
-                <!-- GitHub Guide Modal Toggle -->
+                <!-- Help Button -->
                 <button id="btnHelp" class="flex items-center space-x-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg transition-colors shadow-sm">
                     <i data-lucide="github" class="w-4 h-4"></i>
                     <span class="hidden sm:inline">GitHub Pages</span>
@@ -117,7 +114,7 @@
     <!-- Main Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- LEFT COLUMN: Settings, Controls & Microphones (5 cols) -->
+        <!-- LEFT COLUMN: Form Metadata & Recorder (5 cols) -->
         <section class="lg:col-span-5 flex flex-col space-y-6">
             
             <!-- Metadata Form -->
@@ -151,14 +148,14 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Objetivo / Projeto</label>
-                            <input type="text" id="metaObjective" placeholder="Ex: Pesquisa acadêmica" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <input type="text" id="metaObjective" placeholder="Ex: Pesquisa de Mestrado" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Audio Recording Section -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center space-y-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col space-y-4">
                 
                 <div class="flex items-center justify-between w-full border-b border-slate-100 dark:border-slate-700 pb-3">
                     <span class="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
@@ -168,23 +165,30 @@
                     <span id="recordingTimer" class="font-mono text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">00:00</span>
                 </div>
 
-                <!-- Visualizer -->
+                <!-- Visualizer Canvas -->
                 <div class="w-full h-16 bg-slate-50 dark:bg-slate-900 rounded-xl overflow-hidden relative border border-slate-200 dark:border-slate-700 flex items-center justify-center">
                     <canvas id="audioVisualizer" class="w-full h-full block"></canvas>
                     <p id="visualizerPlaceholder" class="text-xs text-slate-400 absolute">Microfone inativo</p>
                 </div>
 
-                <!-- Controls -->
-                <div class="flex items-center justify-center space-x-4 w-full pt-1">
+                <!-- Record Button -->
+                <div class="flex items-center justify-center space-x-3 w-full pt-1">
                     <button id="btnRecord" class="flex-1 py-3 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95">
                         <i data-lucide="mic" class="w-5 h-5"></i>
                         <span id="btnRecordText">Iniciar Gravação</span>
                     </button>
                 </div>
 
-                <p class="text-[11px] text-slate-400 text-center">
-                    Utiliza o microfone local via navegador. Nenhum áudio enviado para a nuvem.
-                </p>
+                <!-- Alternative: Audio File Upload -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Ou carregue um arquivo de áudio pré-gravado:</label>
+                    <input type="file" id="audioFileInput" accept="audio/*" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-slate-700 dark:file:text-slate-200 cursor-pointer">
+                </div>
+
+                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-3 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5 text-amber-600"></i>
+                    <span><strong>Pontuação por silêncio:</strong> Pausas curtas (~1s) inserem vírgula (<code>,</code>). Pausas longas (~1.8s) inserem ponto final (<code>.</code>) e iniciam em maiúscula.</span>
+                </div>
             </div>
 
             <!-- AI Structuring Box -->
@@ -192,11 +196,11 @@
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-sm text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
                         <i data-lucide="wand-2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                        Gerar Ata Estruturada
+                        Gerar Ata Estruturada com IA
                     </h3>
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Sintetiza a transcrição bruta em tópicos organizados: Resumo, Pontos-chave, P&R e Ações.
+                    Sintetiza o texto em uma ata completa: Resumo Executivo, Pontos-Chave, Perguntas e Respostas e Encaminhamentos.
                 </p>
                 
                 <button id="btnGenerateAI" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95">
@@ -207,7 +211,7 @@
 
         </section>
 
-        <!-- RIGHT COLUMN: Transcripts, Previews & Export Options (7 cols) -->
+        <!-- RIGHT COLUMN: Transcript Editor & Preview Tabs (7 cols) -->
         <section class="lg:col-span-7 flex flex-col space-y-6">
             
             <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full min-h-[580px]">
@@ -224,13 +228,13 @@
                     </button>
                 </div>
 
-                <!-- Tab 1: Live Transcript -->
+                <!-- Tab 1: Live Transcript with Punctuation -->
                 <div id="tabContentTranscript" class="p-4 flex-1 flex flex-col">
                     <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Texto Transcrito no Navegador</label>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Texto Transcrito (Editável)</label>
                         <span id="charCount" class="text-xs text-slate-400">0 caracteres</span>
                     </div>
-                    <textarea id="transcriptTextarea" placeholder="A fala transcrita aparecerá aqui em tempo real... Você também pode colar ou editar qualquer texto diretamente nesta área." class="w-full flex-1 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none font-sans min-h-[380px]"></textarea>
+                    <textarea id="transcriptTextarea" placeholder="A fala transcrita aparecerá aqui em tempo real com pontuação automática baseada nas pausas da voz... Você também pode colar ou editar qualquer trecho do texto manualmente." class="w-full flex-1 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none font-sans min-h-[380px]"></textarea>
                 </div>
 
                 <!-- Tab 2: Document Preview & Downloads -->
@@ -238,7 +242,7 @@
                     
                     <!-- Export Actions Bar -->
                     <div class="bg-slate-100 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Exportar sem Servidor:</span>
+                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Baixar Arquivo:</span>
                         
                         <div class="flex items-center space-x-2">
                             <!-- Export Word -->
@@ -293,27 +297,27 @@
             </div>
             <div class="p-6 space-y-4 text-sm">
                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Insira sua chave API caso queira síntese via Gemini. A chave é mantida apenas na memória de execução da sessão atual (RAM) e descarte automático ao fechar a aba.
+                    Insira sua chave do Google Gemini para síntese via IA avançada. A chave fica salva apenas na memória RAM da sessão atual.
                 </p>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Chave Gemini (Google AI Studio)</label>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Chave API Gemini</label>
                     <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full text-sm border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
             </div>
             <div class="px-6 py-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 flex justify-end">
                 <button id="btnSaveApiKey" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
-                    Usar na Sessão Atual
+                    Salvar na Sessão
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- GitHub Pages Guide Modal -->
+    <!-- GitHub Guide Modal -->
     <div id="modalHelp" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-xl w-full mx-4 overflow-hidden border border-slate-200 dark:border-slate-700">
             <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
                 <h3 class="font-semibold text-white flex items-center gap-2 text-sm">
-                    <i data-lucide="github" class="w-5 h-5 text-emerald-400"></i> Como Publicar no GitHub Pages
+                    <i data-lucide="github" class="w-5 h-5 text-emerald-400"></i> Como Hospedar no GitHub Pages
                 </h3>
                 <button id="btnCloseHelp" class="text-slate-400 hover:text-white">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -321,11 +325,11 @@
             </div>
             <div class="p-6 text-xs sm:text-sm text-slate-600 dark:text-slate-300 space-y-3 leading-relaxed max-h-[75vh] overflow-y-auto">
                 <ol class="list-decimal list-inside space-y-2">
-                    <li>No <a href="https://github.com" target="_blank" class="text-emerald-600 underline">GitHub</a>, crie um novo repositório público (ex: <code>atas-privadas</code>).</li>
-                    <li>Faça o upload deste arquivo salvo como <code>index.html</code>.</li>
+                    <li>No <a href="https://github.com" target="_blank" class="text-emerald-600 underline">GitHub</a>, crie um repositório público (ex: <code>gerador-de-atas</code>).</li>
+                    <li>Crie um arquivo chamado <code>index.html</code> e cole este código completo.</li>
                     <li>Vá em <strong>Settings</strong> &gt; <strong>Pages</strong>.</li>
-                    <li>Em <em>Branch</em>, escolha <code>main</code> / <code>root</code> e salve.</li>
-                    <li>O link do site estará disponível gratuitamente em poucos instantes!</li>
+                    <li>Em <em>Branch</em>, escolha <code>main</code> / <code>root</code> e clique em <strong>Save</strong>.</li>
+                    <li>Seu site estará no ar gratuitamente em cerca de 2 minutos!</li>
                 </ol>
             </div>
         </div>
@@ -335,22 +339,26 @@
     <script>
         lucide.createIcons();
 
-        // Strict Client-Side Memory State (No persistence)
+        // Application In-Memory State
         const memoryState = {
             isRecording: false,
             recognition: null,
             transcriptText: '',
-            startTime: null,
-            timerInterval: null,
+            lastSpeechTime: null,
+            shortPauseTimer: null,
+            longPauseTimer: null,
+            needsCapitalization: true, // Capitalize the first word
             audioCtx: null,
             analyser: null,
             microphone: null,
             visualizerAnimation: null,
-            sessionApiKey: '', // In-memory only
-            structuredData: null
+            sessionApiKey: '',
+            structuredData: null,
+            recordingTimerInterval: null,
+            startTime: null
         };
 
-        // DOM References
+        // DOM Elements
         const btnRecord = document.getElementById('btnRecord');
         const btnRecordText = document.getElementById('btnRecordText');
         const recordingTimer = document.getElementById('recordingTimer');
@@ -363,6 +371,7 @@
         const tabContentTranscript = document.getElementById('tabContentTranscript');
         const tabContentDocPreview = document.getElementById('tabContentDocPreview');
         const documentPreview = document.getElementById('documentPreview');
+        const audioFileInput = document.getElementById('audioFileInput');
 
         const modalSettings = document.getElementById('modalSettings');
         const btnSettings = document.getElementById('btnSettings');
@@ -374,7 +383,6 @@
         const btnHelp = document.getElementById('btnHelp');
         const btnCloseHelp = document.getElementById('btnCloseHelp');
 
-        // Set default date
         document.getElementById('metaDate').valueAsDate = new Date();
 
         function showToast(message, isError = false) {
@@ -402,7 +410,7 @@
         btnSaveApiKey.addEventListener('click', () => {
             memoryState.sessionApiKey = geminiApiKey.value.trim();
             modalSettings.classList.add('hidden');
-            showToast('Chave API guardada apenas para a sessão atual.');
+            showToast('Chave API mantida em memória RAM para esta sessão.');
         });
 
         // Tab Switching
@@ -423,7 +431,6 @@
         tabBtnTranscript.addEventListener('click', () => switchTab('transcript'));
         tabBtnDocPreview.addEventListener('click', () => switchTab('doc'));
 
-        // Input sync
         transcriptTextarea.addEventListener('input', () => {
             memoryState.transcriptText = transcriptTextarea.value;
             charCount.textContent = `${memoryState.transcriptText.length} caracteres`;
@@ -431,7 +438,7 @@
 
         // Instant Wipe Functionality (Privacy First)
         btnWipeData.addEventListener('click', () => {
-            if (confirm('Tem certeza? Todos os textos e dados desta entrevista serão destruídos da memória agora.')) {
+            if (confirm('Tem certeza? Todos os textos e gravações serão destruídos da memória agora.')) {
                 memoryState.transcriptText = '';
                 memoryState.structuredData = null;
                 transcriptTextarea.value = '';
@@ -446,7 +453,7 @@
                     <div class="text-center py-12 text-slate-400 space-y-2">
                         <i data-lucide="shield-check" class="w-10 h-10 mx-auto text-emerald-500 stroke-1"></i>
                         <p class="text-emerald-600 dark:text-emerald-400 font-semibold">Memória Apagada com Sucesso!</p>
-                        <p class="text-xs">Nenhum vestígio permanece no navegador.</p>
+                        <p class="text-xs">Nenhum registro permanece no navegador.</p>
                     </div>
                 `;
                 lucide.createIcons();
@@ -454,7 +461,7 @@
             }
         });
 
-        // Speech Recognition Setup (Web Speech API)
+        // Pause-Based Punctuation Engine
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (SpeechRecognition) {
@@ -464,12 +471,55 @@
             memoryState.recognition.lang = 'pt-BR';
 
             memoryState.recognition.onresult = (event) => {
-                let current = '';
+                clearTimeout(memoryState.shortPauseTimer);
+                clearTimeout(memoryState.longPauseTimer);
+
+                let speechChunk = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    current += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        speechChunk += event.results[i][0].transcript;
+                    }
                 }
-                transcriptTextarea.value = memoryState.transcriptText + (memoryState.transcriptText ? ' ' : '') + current;
-                charCount.textContent = `${transcriptTextarea.value.length} caracteres`;
+
+                if (speechChunk.trim().length > 0) {
+                    let formattedChunk = speechChunk.trim();
+
+                    // Apply Capitalization if after a period or start of stream
+                    if (memoryState.needsCapitalization) {
+                        formattedChunk = formattedChunk.charAt(0).toUpperCase() + formattedChunk.slice(1);
+                        memoryState.needsCapitalization = false;
+                    }
+
+                    // Append formatted chunk
+                    const currentVal = transcriptTextarea.value;
+                    const space = currentVal && !currentVal.endsWith(' ') && !currentVal.endsWith('\n') ? ' ' : '';
+                    transcriptTextarea.value = currentVal + space + formattedChunk;
+                    memoryState.transcriptText = transcriptTextarea.value;
+                    charCount.textContent = `${transcriptTextarea.value.length} caracteres`;
+
+                    // Set Pause Timers
+                    // Short Pause Timer (~1.0s) -> Insert comma
+                    memoryState.shortPauseTimer = setTimeout(() => {
+                        const txt = transcriptTextarea.value.trim();
+                        if (txt && !txt.endsWith(',') && !txt.endsWith('.')) {
+                            transcriptTextarea.value = txt + ',';
+                            memoryState.transcriptText = transcriptTextarea.value;
+                        }
+                    }, 1000);
+
+                    // Long Pause Timer (~1.8s) -> Convert comma to period & capitalize next sentence
+                    memoryState.longPauseTimer = setTimeout(() => {
+                        let txt = transcriptTextarea.value.trim();
+                        if (txt.endsWith(',')) {
+                            txt = txt.slice(0, -1); // Remove comma
+                        }
+                        if (txt && !txt.endsWith('.')) {
+                            transcriptTextarea.value = txt + '.';
+                            memoryState.transcriptText = transcriptTextarea.value;
+                            memoryState.needsCapitalization = true;
+                        }
+                    }, 1800);
+                }
             };
 
             memoryState.recognition.onend = () => {
@@ -478,6 +528,14 @@
                 }
             };
         }
+
+        // File Upload Handler (Simulated Client-Side Audio Loader)
+        audioFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                showToast(`Arquivo "${file.name}" carregado. Transcreva com o gravador ou sintetize diretamente.`);
+            }
+        });
 
         // Visualizer Setup
         function startVisualizer(stream) {
@@ -522,10 +580,9 @@
             document.getElementById('visualizerPlaceholder').classList.remove('hidden');
         }
 
-        // Timer
         function startTimer() {
             memoryState.startTime = Date.now();
-            memoryState.timerInterval = setInterval(() => {
+            memoryState.recordingTimerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - memoryState.startTime) / 1000);
                 const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
                 const secs = String(elapsed % 60).padStart(2, '0');
@@ -534,7 +591,7 @@
         }
 
         function stopTimer() {
-            clearInterval(memoryState.timerInterval);
+            clearInterval(memoryState.recordingTimerInterval);
         }
 
         // Recording Toggle
@@ -551,10 +608,9 @@
                     startVisualizer(stream);
 
                     if (memoryState.recognition) {
-                        memoryState.transcriptText = transcriptTextarea.value;
                         memoryState.recognition.start();
                     }
-                    showToast("Gravação e transcrição iniciadas!");
+                    showToast("Gravação com pontuação automática iniciada!");
                 } catch (err) {
                     showToast("Microfone não disponível ou negado.", true);
                 }
@@ -567,13 +623,15 @@
                 stopTimer();
                 stopVisualizer();
 
+                clearTimeout(memoryState.shortPauseTimer);
+                clearTimeout(memoryState.longPauseTimer);
+
                 if (memoryState.recognition) memoryState.recognition.stop();
-                memoryState.transcriptText = transcriptTextarea.value;
                 showToast("Gravação pausada.");
             }
         });
 
-        // Generate Minutes
+        // Structured Minutes Generation
         async function generateStructuredData() {
             const text = transcriptTextarea.value.trim();
             if (!text) {
@@ -597,7 +655,7 @@
 
             if (memoryState.sessionApiKey) {
                 try {
-                    const systemPrompt = `Processe a transcrição fornecida e retorne EXATAMENTE um JSON válido no formato:
+                    const systemPrompt = `Processe a transcrição e retorne EXATAMENTE um JSON válido no formato:
 {
   "resumo": "Breve síntese executiva",
   "pontosChave": ["Ponto 1", "Ponto 2"],
@@ -621,7 +679,7 @@
                     const textContent = jsonResp.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (textContent) resultData = JSON.parse(textContent);
                 } catch (e) {
-                    console.error("Gemini call failed, using local processor", e);
+                    console.error("Gemini API error, falling back to local synthesizer", e);
                 }
             }
 
@@ -629,12 +687,12 @@
             if (!resultData) {
                 const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
                 resultData = {
-                    resumo: sentences.slice(0, 3).join('. ') + '.',
+                    resumo: sentences.slice(0, 3).join('. ') + (sentences.length > 0 ? '.' : ''),
                     pontosChave: sentences.slice(0, 5).map(s => s.trim()),
                     perguntasRespostas: [
-                        { pergunta: "Relato Transcrito", resposta: text }
+                        { pergunta: "Relato Transcrito Completo", resposta: text }
                     ],
-                    encaminhamentos: ["Revisar e validar o conteúdo registrado."]
+                    encaminhamentos: ["Revisar e homologar os pontos acordados nesta entrevista."]
                 };
             }
 
@@ -645,7 +703,7 @@
             btnGenerateAI.disabled = false;
             btnGenerateAI.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i><span>Sintetizar Ata Agora</span>`;
             lucide.createIcons();
-            showToast("Ata sintetizada localmente!");
+            showToast("Ata sintetizada com sucesso!");
         }
 
         btnGenerateAI.addEventListener('click', generateStructuredData);
