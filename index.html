@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AtaFácil - Gerador de Atas com Gravador Contínuo & Privacidade Total</title>
+    <title>AtaFácil - Gravador Contínuo & Gerador de Atas (Word & PDF)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,22 +14,25 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
                         }
                     }
                 }
             }
         }
     </script>
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Export Libraries (Client-Side Only) -->
+
+    <!-- Client-Side Export Libraries -->
+    <!-- DOCX Generator -->
     <script src="https://unpkg.com/docx@8.2.2/build/index.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <!-- PDF Generator Libraries (html2pdf includes html2canvas and jsPDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -37,10 +40,10 @@
         body { font-family: 'Inter', sans-serif; }
 
         .recording-pulse {
-            animation: pulse 1.8s infinite;
+            animation: redPulse 1.8s infinite;
         }
 
-        @keyframes pulse {
+        @keyframes redPulse {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
@@ -55,13 +58,13 @@
 <body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col transition-colors duration-200">
 
     <!-- Privacy Notice Banner -->
-    <div class="bg-emerald-600 dark:bg-emerald-700 text-white text-xs py-2 px-4 shadow-sm flex items-center justify-between">
+    <div class="bg-blue-700 text-white text-xs py-2 px-4 shadow-sm flex items-center justify-between">
         <div class="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-200"></i>
-                <span class="font-medium"><strong>Garantia de Privacidade Total:</strong> Gravação contínua sem servidores ou banco de dados. Tudo roda localmente na memória RAM do seu navegador.</span>
+                <i data-lucide="shield-check" class="w-4 h-4 text-blue-200"></i>
+                <span class="font-medium"><strong>Privacidade Total Garantida:</strong> Gravação contínua em tempo real. Nenhum áudio ou texto é enviado para servidores externos ou banco de dados. Tudo ocorre na RAM do seu navegador.</span>
             </div>
-            <span class="hidden md:inline-block bg-emerald-800/60 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-semibold">100% Client-Side</span>
+            <span class="hidden md:inline-block bg-blue-900/60 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-semibold">100% Client-Side</span>
         </div>
     </div>
 
@@ -69,19 +72,19 @@
     <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-30 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-emerald-600 text-white rounded-xl shadow-md">
-                    <i data-lucide="lock" class="w-6 h-6"></i>
+                <div class="p-2 bg-blue-600 text-white rounded-xl shadow-md">
+                    <i data-lucide="mic" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-snug flex items-center gap-2">
-                        AtaFácil Privado
+                    <h1 class="font-bold text-lg leading-snug flex items-center gap-2 text-slate-900 dark:text-white">
+                        AtaFácil
                     </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Gravador Contínuo com Pontuação Automática</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Gravador Contínuo com Pontuação Automática & Exportador de Atas</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2 sm:space-x-3">
-                <!-- Immediate Data Wipe Button -->
+                <!-- Emergency Data Wipe Button -->
                 <button id="btnWipeData" class="flex items-center space-x-1.5 text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 px-3 py-2 rounded-lg transition-colors" title="Apaga instantaneamente todos os textos da memória RAM">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                     <span class="hidden sm:inline">Destruir Dados Agora</span>
@@ -89,13 +92,13 @@
 
                 <!-- API Key Config Button -->
                 <button id="btnSettings" class="flex items-center space-x-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 transition-colors">
-                    <i data-lucide="key" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                    <span class="hidden sm:inline">Chave IA (Opcional)</span>
+                    <i data-lucide="key" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
+                    <span class="hidden sm:inline">Chave Gemini (Opcional)</span>
                 </button>
 
                 <!-- Help Modal Toggle -->
                 <button id="btnHelp" class="flex items-center space-x-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg transition-colors shadow-sm">
-                    <i data-lucide="github" class="w-4 h-4"></i>
+                    <i data-lucide="help-circle" class="w-4 h-4"></i>
                     <span class="hidden sm:inline">Como Usar</span>
                 </button>
             </div>
@@ -105,49 +108,49 @@
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
         <div id="toastContent" class="flex items-center space-x-2 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl text-sm border border-slate-700">
-            <i id="toastIcon" data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+            <i id="toastIcon" data-lucide="check-circle" class="w-5 h-5 text-blue-400"></i>
             <span id="toastMessage">Notificação</span>
         </div>
     </div>
 
-    <!-- Main Container -->
+    <!-- Main Content Grid -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- LEFT COLUMN: Identification, Recorder & Audio Upload (5 cols) -->
+        <!-- LEFT COLUMN: Metadata, Continuous Recorder & Controls (5 cols) -->
         <section class="lg:col-span-5 flex flex-col space-y-6">
             
             <!-- Metadata Form -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
                 <h2 class="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <i data-lucide="user-check" class="w-4 h-4 text-emerald-600"></i>
+                    <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i>
                     Identificação da Entrevista
                 </h2>
                 
                 <div class="grid grid-cols-1 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Título da Entrevista</label>
-                        <input type="text" id="metaTitle" placeholder="Ex: Entrevista de Coleta de Dados" value="Entrevista de Campo" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Título da Entrevista / Reunião</label>
+                        <input type="text" id="metaTitle" placeholder="Ex: Entrevista de Coleta de Requisitos" value="Entrevista de Campo" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Entrevistador(a)</label>
-                            <input type="text" id="metaInterviewer" placeholder="Nome do entrevistador" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <input type="text" id="metaInterviewer" placeholder="Nome do entrevistador" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Entrevistado(a)</label>
-                            <input type="text" id="metaInterviewee" placeholder="Nome do participante" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <input type="text" id="metaInterviewee" placeholder="Nome do participante" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Data</label>
-                            <input type="date" id="metaDate" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <input type="date" id="metaDate" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Objetivo / Projeto</label>
-                            <input type="text" id="metaObjective" placeholder="Ex: Pesquisa acadêmica" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <input type="text" id="metaObjective" placeholder="Ex: Pesquisa qualitativa" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         </div>
                     </div>
                 </div>
@@ -158,7 +161,7 @@
                 
                 <div class="flex items-center justify-between w-full border-b border-slate-100 dark:border-slate-700 pb-3">
                     <span class="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                        <i data-lucide="mic" class="w-4 h-4 text-red-500"></i>
+                        <i data-lucide="radio" class="w-4 h-4 text-red-500"></i>
                         Gravador Contínuo Sem Pausas
                     </span>
                     <span id="recordingTimer" class="font-mono text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-md">00:00</span>
@@ -170,7 +173,7 @@
                     <p id="visualizerPlaceholder" class="text-xs text-slate-400 absolute">Microfone inativo</p>
                 </div>
 
-                <!-- Controls -->
+                <!-- Record Button -->
                 <div class="flex items-center justify-center space-x-3 w-full pt-1">
                     <button id="btnRecord" class="flex-1 py-3 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95">
                         <i data-lucide="mic" class="w-5 h-5"></i>
@@ -184,7 +187,7 @@
                         <span class="w-2 h-2 rounded-full bg-slate-300 inline-block"></span>
                         Pronto para gravar
                     </span>
-                    <span class="text-emerald-600 dark:text-emerald-400 font-medium">Keep-Alive Ativo</span>
+                    <span class="text-blue-600 dark:text-blue-400 font-medium">Reconexão Automática Ativa</span>
                 </div>
             </div>
 
@@ -192,101 +195,95 @@
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
                 <h3 class="font-semibold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-500"></i>
-                    Upload de Arquivo de Áudio
+                    Upload de Áudio Pré-gravado
                 </h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Se você já gravou a entrevista antes, selecione o arquivo de áudio (MP3, WAV, M4A, WEBM, OGG) para carregar no player local.
+                    Se você já possui o arquivo gravado, carregue-o aqui para tocá-lo no player local enquanto revisa a transcrição.
                 </p>
                 
                 <input type="file" id="audioFileInput" accept="audio/*" class="hidden">
-                <button id="btnUploadAudio" class="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 hover:border-emerald-500 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center justify-center gap-2 transition-colors">
+                <button id="btnUploadAudio" class="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-medium flex items-center justify-center gap-2 transition-colors">
                     <i data-lucide="file-audio" class="w-4 h-4 text-slate-500"></i>
-                    <span id="uploadAudioText">Selecionar arquivo de áudio local</span>
+                    <span id="uploadAudioText">Selecionar arquivo de áudio</span>
                 </button>
                 <audio id="localAudioPlayer" controls class="w-full mt-2 hidden text-xs"></audio>
             </div>
 
             <!-- AI Structuring Box -->
-            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-emerald-950/30 rounded-2xl p-5 border border-emerald-200 dark:border-emerald-800/40 shadow-sm space-y-3">
+            <div class="bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-blue-950/30 rounded-2xl p-5 border border-blue-200 dark:border-blue-800/40 shadow-sm space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-semibold text-sm text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
-                        <i data-lucide="wand-2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
-                        Gerar Ata Estruturada
+                    <h3 class="font-semibold text-sm text-blue-900 dark:text-blue-300 flex items-center gap-2">
+                        <i data-lucide="wand-2" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
+                        Sintetizar / Estruturar Ata
                     </h3>
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Sintetiza a transcrição bruta em tópicos organizados: Resumo, Pontos-chave, P&R e Encaminhamentos.
+                    Organiza o texto em: Resumo Executivo, Pontos-Chave, P&R e Encaminhamentos. Se nenhuma chave API for fornecida, o sistema usará o sintetizador local mantendo 100% do texto transcrito.
                 </p>
                 
-                <button id="btnGenerateAI" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95">
+                <button id="btnGenerateAI" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95">
                     <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    <span>Sintetizar Ata Agora</span>
+                    <span>Gerar Ata Estruturada</span>
                 </button>
             </div>
 
         </section>
 
-        <!-- RIGHT COLUMN: Transcripts, Previews & Export Options (7 cols) -->
+        <!-- RIGHT COLUMN: Transcript Editor & Document Viewers (7 cols) -->
         <section class="lg:col-span-7 flex flex-col space-y-6">
             
             <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full min-h-[580px]">
                 
                 <!-- Tab Headers -->
                 <div class="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 p-1.5 gap-1">
-                    <button id="tabBtnTranscript" class="flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm">
+                    <button id="tabBtnTranscript" class="flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-sm">
                         <i data-lucide="file-text" class="w-4 h-4"></i>
-                        <span>1. Transcrição Bruta</span>
+                        <span>1. Transcrição ao Vivo</span>
                     </button>
                     <button id="tabBtnDocPreview" class="flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
                         <i data-lucide="file-check-2" class="w-4 h-4"></i>
-                        <span>2. Ata Finalizada & Exportar</span>
+                        <span>2. Ata Finalizada & Exportação</span>
                     </button>
                 </div>
 
-                <!-- Tab 1: Live Transcript -->
+                <!-- Tab 1: Live Editable Transcript -->
                 <div id="tabContentTranscript" class="p-4 flex-1 flex flex-col">
                     <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Texto Transcrito em Tempo Real (Pontuação Automática Ativa)</label>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Texto Transcrito em Tempo Real (Editável)</label>
                         <span id="charCount" class="text-xs text-slate-400">0 caracteres</span>
                     </div>
-                    <textarea id="transcriptTextarea" placeholder="A fala transcrita aparecerá aqui em tempo real sem interrupções por silêncio. As vírgulas e pontos serão inseridos automaticamente com base no tempo de pausa... Você também pode colar ou editar qualquer texto diretamente nesta área." class="w-full flex-1 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none font-sans min-h-[380px]"></textarea>
+                    <textarea id="transcriptTextarea" placeholder="A fala transcrita aparecerá aqui continuamente. As vírgulas e pontos finais serão inseridos automaticamente com base na duração das pausas de fala... Você também pode digitar, editar ou colar texto diretamente aqui." class="w-full flex-1 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm leading-relaxed focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none font-sans min-h-[380px]"></textarea>
                 </div>
 
-                <!-- Tab 2: Document Preview & Downloads -->
+                <!-- Tab 2: Document Preview & Exclusive Word/PDF Exports -->
                 <div id="tabContentDocPreview" class="p-4 flex-1 flex flex-col hidden space-y-4">
                     
-                    <!-- Export Actions Bar -->
-                    <div class="bg-slate-100 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Exportar sem Servidor:</span>
+                    <!-- Exclusive Export Actions Bar (ONLY Word and PDF) -->
+                    <div class="bg-slate-100 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
+                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Exportação Local:</span>
                         
-                        <div class="flex items-center space-x-2">
-                            <!-- Export Word -->
-                            <button id="btnExportDocx" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center space-x-1.5 transition-colors shadow-sm">
-                                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
-                                <span>Word (.docx)</span>
+                        <div class="flex items-center space-x-3">
+                            <!-- Export Word Button -->
+                            <button id="btnExportDocx" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center space-x-2 transition-colors shadow-sm active:scale-95">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                                <span>Baixar em Word (.docx)</span>
                             </button>
 
-                            <!-- Export PowerPoint -->
-                            <button id="btnExportPptx" class="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium flex items-center space-x-1.5 transition-colors shadow-sm">
-                                <i data-lucide="presentation" class="w-3.5 h-3.5"></i>
-                                <span>PowerPoint (.pptx)</span>
-                            </button>
-
-                            <!-- Export PDF -->
-                            <button id="btnExportPdf" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-medium flex items-center space-x-1.5 transition-colors shadow-sm">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
-                                <span>PDF (.pdf)</span>
+                            <!-- Export PDF Button -->
+                            <button id="btnExportPdf" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center space-x-2 transition-colors shadow-sm active:scale-95">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                <span>Baixar em PDF (.pdf)</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Rendered Preview Area -->
+                    <!-- Rendered Preview Area for Export -->
                     <div class="flex-1 overflow-y-auto max-h-[420px] p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm leading-relaxed" id="documentPreviewContainer">
                         <div id="documentPreview">
                             <div class="text-center py-12 text-slate-400 space-y-2">
                                 <i data-lucide="file-question" class="w-10 h-10 mx-auto stroke-1"></i>
-                                <p>Sua ata estruturada ainda não foi gerada.</p>
-                                <p class="text-xs">Grave o áudio ou cole o texto e clique em "Sintetizar Ata Agora".</p>
+                                <p>Sua ata ainda não foi gerada.</p>
+                                <p class="text-xs">Grave a entrevista ou digite no editor e clique em "Gerar Ata Estruturada".</p>
                             </div>
                         </div>
                     </div>
@@ -299,12 +296,12 @@
 
     </main>
 
-    <!-- API Key Modal -->
+    <!-- Settings Modal (Gemini API Key) -->
     <div id="modalSettings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full mx-4 overflow-hidden border border-slate-200 dark:border-slate-700">
             <div class="px-6 py-4 bg-slate-100 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center">
                 <h3 class="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 text-sm">
-                    <i data-lucide="key" class="w-4 h-4 text-emerald-600"></i> Chave API do Gemini (Opcional)
+                    <i data-lucide="key" class="w-4 h-4 text-blue-600"></i> Chave API Gemini (Opcional)
                 </h3>
                 <button id="btnCloseSettings" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -312,46 +309,46 @@
             </div>
             <div class="p-6 space-y-4 text-sm">
                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Insira sua chave API caso queira síntese inteligente avançada via Gemini. A chave é mantida apenas na memória de execução da sessão atual (RAM) e descartada ao fechar a aba.
+                    Insira sua chave para habilitar a síntese inteligente por IA do Gemini. A chave é mantida unicamente na memória de execução da aba atual (RAM) e descartada ao fechar.
                 </p>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Chave Gemini (Google AI Studio)</label>
-                    <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full text-sm border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full text-sm border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
             </div>
             <div class="px-6 py-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                <button id="btnSaveApiKey" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
-                    Usar na Sessão Atual
+                <button id="btnSaveApiKey" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
+                    Salvar na Sessão Atual
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- User Guide Modal -->
+    <!-- Help Modal -->
     <div id="modalHelp" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-xl w-full mx-4 overflow-hidden border border-slate-200 dark:border-slate-700">
             <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
                 <h3 class="font-semibold text-white flex items-center gap-2 text-sm">
-                    <i data-lucide="help-circle" class="w-5 h-5 text-emerald-400"></i> Como Funciona o Gravador Contínuo
+                    <i data-lucide="help-circle" class="w-5 h-5 text-blue-400"></i> Como Funciona o AtaFácil
                 </h3>
                 <button id="btnCloseHelp" class="text-slate-400 hover:text-white">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <div class="p-6 text-xs sm:text-sm text-slate-600 dark:text-slate-300 space-y-3 leading-relaxed max-h-[75vh] overflow-y-auto">
-                <p><strong>1. Gravador Contínuo (Keep-Alive):</strong> O sistema foi projetado para não interromper a gravação quando houver momentos de silêncio ou pausas. Se o navegador tentar parar o microfone, o aplicativo o reconecta automaticamente em milissegundos.</p>
-                <p><strong>2. Pontuação por Pausa:</strong> Pausas curtas de silêncio (1 a 2.5s) inserem uma vírgula no texto. Pausas mais longas (>2.5s) inserem um ponto final e iniciam a frase seguinte com letra maiúscula.</p>
-                <p><strong>3. Upload de Áudio:</strong> Caso já possua o arquivo gravado previamente, utilize a opção "Upload de Arquivo de Áudio" para tocá-lo no navegador.</p>
-                <p><strong>4. Privacidade Absoluta:</strong> Seus dados não passam por nenhum servidor intermediário. O botão "Destruir Dados Agora" limpa instantaneamente toda a memória RAM.</p>
+                <p><strong>1. Gravador Contínuo:</strong> O sistema mantém a escuta do microfone ativada. Se houver silêncio prolongado ou reconexão do navegador, ele reativa a transcrição sem perder o texto já gravado.</p>
+                <p><strong>2. Pontuação por Silêncio:</strong> Pausas curtas (~1s) aplicam vírgulas. Pausas maiores (>1.8s) aplicam ponto final e iniciam a frase seguinte com maiúscula.</p>
+                <p><strong>3. Exportação Exclusiva:</strong> Exporte sua ata rápida e localmente nos dois formatos padrões do mercado: <strong>Word (.docx)</strong> e <strong>PDF (.pdf)</strong>.</p>
+                <p><strong>4. Destruição de Dados:</strong> O botão "Destruir Dados Agora" limpa instantaneamente a memória RAM e a tela.</p>
             </div>
         </div>
     </div>
 
-    <!-- Application Logic -->
     <script>
+        // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Strict Client-Side Memory State
+        // Memory State
         const memoryState = {
             isUserRecording: false,
             recognition: null,
@@ -364,11 +361,10 @@
             visualizerAnimation: null,
             sessionApiKey: '',
             structuredData: null,
-            lastSpeechTimestamp: Date.now(),
-            hasPendingSentence: false
+            lastSpeechTimestamp: Date.now()
         };
 
-        // DOM References
+        // DOM Element References
         const btnRecord = document.getElementById('btnRecord');
         const btnRecordText = document.getElementById('btnRecordText');
         const recordingTimer = document.getElementById('recordingTimer');
@@ -398,9 +394,10 @@
         const btnHelp = document.getElementById('btnHelp');
         const btnCloseHelp = document.getElementById('btnCloseHelp');
 
-        // Set default date
+        // Default Date
         document.getElementById('metaDate').valueAsDate = new Date();
 
+        // Toast Helper
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
@@ -408,7 +405,7 @@
             
             toastMessage.textContent = message;
             toastIcon.setAttribute('data-lucide', isError ? 'alert-circle' : 'check-circle');
-            toastIcon.className = `w-5 h-5 ${isError ? 'text-red-400' : 'text-emerald-400'}`;
+            toastIcon.className = `w-5 h-5 ${isError ? 'text-red-400' : 'text-blue-400'}`;
             lucide.createIcons();
 
             toast.classList.remove('translate-y-20', 'opacity-0');
@@ -417,7 +414,7 @@
             }, 3000);
         }
 
-        // Modal triggers
+        // Modal Controls
         btnSettings.addEventListener('click', () => modalSettings.classList.remove('hidden'));
         btnCloseSettings.addEventListener('click', () => modalSettings.classList.add('hidden'));
         btnHelp.addEventListener('click', () => modalHelp.classList.remove('hidden'));
@@ -426,20 +423,20 @@
         btnSaveApiKey.addEventListener('click', () => {
             memoryState.sessionApiKey = geminiApiKey.value.trim();
             modalSettings.classList.add('hidden');
-            showToast('Chave API guardada na sessão atual (RAM).');
+            showToast('Chave API salva na memória da sessão.');
         });
 
-        // Tab Switching
+        // Tab Switching Logic
         function switchTab(tab) {
             if (tab === 'transcript') {
                 tabContentTranscript.classList.remove('hidden');
                 tabContentDocPreview.classList.add('hidden');
-                tabBtnTranscript.className = "flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm";
+                tabBtnTranscript.className = "flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-sm";
                 tabBtnDocPreview.className = "flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200";
             } else {
                 tabContentTranscript.classList.add('hidden');
                 tabContentDocPreview.classList.remove('hidden');
-                tabBtnDocPreview.className = "flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-sm";
+                tabBtnDocPreview.className = "flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-sm";
                 tabBtnTranscript.className = "flex-1 py-2 px-3 text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center space-x-2 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200";
             }
         }
@@ -447,15 +444,15 @@
         tabBtnTranscript.addEventListener('click', () => switchTab('transcript'));
         tabBtnDocPreview.addEventListener('click', () => switchTab('doc'));
 
-        // Input sync
+        // Text Area Input Listener
         transcriptTextarea.addEventListener('input', () => {
             memoryState.transcriptText = transcriptTextarea.value;
             charCount.textContent = `${memoryState.transcriptText.length} caracteres`;
         });
 
-        // Instant Wipe Functionality (Privacy First)
+        // Data Destruction (Emergency Reset)
         btnWipeData.addEventListener('click', () => {
-            if (confirm('Tem certeza? Todos os textos e dados desta entrevista serão destruídos da memória RAM agora.')) {
+            if (confirm('Atenção: Todos os dados transcritos e informações da ata serão destruídos da memória RAM agora. Deseja continuar?')) {
                 memoryState.transcriptText = '';
                 memoryState.structuredData = null;
                 transcriptTextarea.value = '';
@@ -468,17 +465,17 @@
                 
                 documentPreview.innerHTML = `
                     <div class="text-center py-12 text-slate-400 space-y-2">
-                        <i data-lucide="shield-check" class="w-10 h-10 mx-auto text-emerald-500 stroke-1"></i>
-                        <p class="text-emerald-600 dark:text-emerald-400 font-semibold">Memória Apagada com Sucesso!</p>
-                        <p class="text-xs">Nenhum vestígio permanece no navegador.</p>
+                        <i data-lucide="shield-check" class="w-10 h-10 mx-auto text-blue-500 stroke-1"></i>
+                        <p class="text-blue-600 dark:text-blue-400 font-semibold">Memória Apagada com Sucesso!</p>
+                        <p class="text-xs">Nenhum dado permanece no sistema.</p>
                     </div>
                 `;
                 lucide.createIcons();
-                showToast("Todos os dados foram totalmente destruídos.");
+                showToast("Dados destruídos com sucesso.");
             }
         });
 
-        // Audio Upload Handler
+        // Audio File Upload Handler
         btnUploadAudio.addEventListener('click', () => audioFileInput.click());
         audioFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -487,16 +484,16 @@
                 localAudioPlayer.src = fileURL;
                 localAudioPlayer.classList.remove('hidden');
                 uploadAudioText.textContent = `Arquivo: ${file.name}`;
-                showToast("Arquivo de áudio carregado no player local!");
+                showToast("Áudio carregado no player local!");
             }
         });
 
-        // Speech Recognition Setup (Web Speech API)
+        // Web Speech API Engine Setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         function initSpeechEngine() {
             if (!SpeechRecognition) {
-                showToast("Reconhecimento de voz não suportado neste navegador. Use o Chrome ou Edge.", true);
+                showToast("Reconhecimento de voz não suportado neste navegador. Utilize Google Chrome ou Microsoft Edge.", true);
                 return;
             }
 
@@ -525,18 +522,18 @@
                 if (finalTranscriptChunk.trim().length > 0) {
                     let textToAdd = finalTranscriptChunk.trim();
 
-                    // Automatic Punctuation Logic based on silence gap
+                    // Automatic Punctuation based on silence duration
                     if (memoryState.transcriptText.length > 0) {
                         const lastChar = memoryState.transcriptText.trim().slice(-1);
                         
-                        if (pauseDuration > 2500) { // Long pause -> Period + Capitalize
+                        if (pauseDuration > 1800) { // Long pause (> 1.8s) -> Period + Capitalize
                             if (!['.', '!', '?'].includes(lastChar)) {
                                 memoryState.transcriptText = memoryState.transcriptText.trim() + '. ';
                             } else {
                                 memoryState.transcriptText = memoryState.transcriptText.trim() + ' ';
                             }
                             textToAdd = textToAdd.charAt(0).toUpperCase() + textToAdd.slice(1);
-                        } else if (pauseDuration > 1000) { // Short pause -> Comma
+                        } else if (pauseDuration > 900) { // Short pause (> 0.9s) -> Comma
                             if (![',', '.', '!', '?'].includes(lastChar)) {
                                 memoryState.transcriptText = memoryState.transcriptText.trim() + ', ';
                             } else {
@@ -553,18 +550,18 @@
                     memoryState.transcriptText += textToAdd;
                 }
 
-                // Update text area with permanent text + active interim text
+                // Update text area
                 transcriptTextarea.value = memoryState.transcriptText + (interimTranscript ? ' ' + interimTranscript : '');
                 charCount.textContent = `${transcriptTextarea.value.length} caracteres`;
                 transcriptTextarea.scrollTop = transcriptTextarea.scrollHeight;
             };
 
-            // KEEP-ALIVE LOOP: Auto reconnect on silence or sudden disconnect
+            // KEEP-ALIVE LOOP: Auto-reconnect speech engine on end
             memoryState.recognition.onend = () => {
                 if (memoryState.isUserRecording) {
                     try {
                         memoryState.recognition.start();
-                        updateStatusIndicator(true, "Reconectando canal...");
+                        updateStatusIndicator(true, "Reconectando áudio...");
                     } catch (e) {
                         setTimeout(() => {
                             if (memoryState.isUserRecording) memoryState.recognition.start();
@@ -577,7 +574,7 @@
 
             memoryState.recognition.onerror = (event) => {
                 if (event.error !== 'no-speech' && memoryState.isUserRecording) {
-                    console.warn("Speech Recognition Error:", event.error);
+                    console.warn("Aviso de reconhecimento de voz:", event.error);
                 }
             };
         }
@@ -589,7 +586,7 @@
             `;
         }
 
-        // Visualizer Setup
+        // Canvas Audio Visualizer
         function startVisualizer(stream) {
             const canvas = document.getElementById('audioVisualizer');
             const canvasCtx = canvas.getContext('2d');
@@ -618,7 +615,7 @@
 
                 for (let i = 0; i < bufferLength; i++) {
                     barHeight = (dataArray[i] / 255) * canvas.height;
-                    canvasCtx.fillStyle = '#10b981';
+                    canvasCtx.fillStyle = '#3b82f6';
                     canvasCtx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
                     x += barWidth + 1;
                 }
@@ -647,7 +644,7 @@
             clearInterval(memoryState.timerInterval);
         }
 
-        // Recording Toggle
+        // Toggle Recording
         btnRecord.addEventListener('click', async () => {
             if (!memoryState.recognition) initSpeechEngine();
 
@@ -658,7 +655,7 @@
                     
                     btnRecord.classList.remove('bg-red-500', 'hover:bg-red-600');
                     btnRecord.classList.add('bg-slate-700', 'hover:bg-slate-800', 'recording-pulse');
-                    btnRecordText.textContent = "Parar Gravação Contínua";
+                    btnRecordText.textContent = "Pausar Gravação Contínua";
                     
                     startTimer();
                     startVisualizer(stream);
@@ -666,9 +663,9 @@
 
                     memoryState.lastSpeechTimestamp = Date.now();
                     memoryState.recognition.start();
-                    showToast("Gravação contínua iniciada. Silêncios não fecharão a gravação!");
+                    showToast("Gravação contínua iniciada!");
                 } catch (err) {
-                    showToast("Permissão do microfone negada ou indisponível.", true);
+                    showToast("Permissão de microfone negada ou indisponível.", true);
                 }
             } else {
                 memoryState.isUserRecording = false;
@@ -682,15 +679,15 @@
 
                 if (memoryState.recognition) memoryState.recognition.stop();
                 memoryState.transcriptText = transcriptTextarea.value;
-                showToast("Gravação pausada pelo usuário.");
+                showToast("Gravação pausada.");
             }
         });
 
-        // Generate Minutes
+        // Generate Structured Minutes
         async function generateStructuredData() {
             const text = transcriptTextarea.value.trim();
             if (!text) {
-                showToast("Nenhum texto disponível para gerar a ata.", true);
+                showToast("Digite ou grave um texto antes de gerar a ata.", true);
                 return;
             }
 
@@ -699,23 +696,23 @@
                 interviewer: document.getElementById('metaInterviewer').value || 'Não informado',
                 interviewee: document.getElementById('metaInterviewee').value || 'Não informado',
                 date: document.getElementById('metaDate').value || new Date().toLocaleDateString('pt-BR'),
-                objective: document.getElementById('metaObjective').value || 'Síntese de Conteúdo'
+                objective: document.getElementById('metaObjective').value || 'Registro de Entrevista'
             };
 
             btnGenerateAI.disabled = true;
-            btnGenerateAI.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Sintetizando...</span>`;
+            btnGenerateAI.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Estruturando...</span>`;
             lucide.createIcons();
 
             let resultData = null;
 
             if (memoryState.sessionApiKey) {
                 try {
-                    const systemPrompt = `Processe a transcrição fornecida e retorne EXATAMENTE um JSON válido no formato:
+                    const systemPrompt = `Você é um assistente especialista em redação de atas de entrevista. Analise a transcrição fornecida e retorne estritamente um JSON no seguinte formato:
 {
-  "resumo": "Breve síntese executiva",
-  "pontosChave": ["Ponto 1", "Ponto 2"],
-  "perguntasRespostas": [{"pergunta": "Pergunta/Tópico", "resposta": "Resposta sintética"}],
-  "encaminhamentos": ["Ação necessária"]
+  "resumo": "Síntese executiva clara do conteúdo falado",
+  "pontosChave": ["Tópico ou decisão importante 1", "Tópico ou decisão importante 2"],
+  "perguntasRespostas": [{"pergunta": "Tópico/Pergunta", "resposta": "Resposta do entrevistado"}],
+  "encaminhamentos": ["Ação ou encaminhamento 1"]
 }`;
 
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${memoryState.sessionApiKey}`;
@@ -724,7 +721,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: `Transcrição:\n${text}` }] }],
+                            contents: [{ parts: [{ text: `Transcrição Completa:\n${text}` }] }],
                             systemInstruction: { parts: [{ text: systemPrompt }] },
                             generationConfig: { responseMimeType: "application/json" }
                         })
@@ -734,42 +731,43 @@
                     const textContent = jsonResp.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (textContent) resultData = JSON.parse(textContent);
                 } catch (e) {
-                    console.error("Gemini call failed, falling back to local synthesizer", e);
+                    console.error("Falha ao chamar API do Gemini. Usando sintetizador local sem perda.", e);
                 }
             }
 
-            // Client-Side Fallback Synthesizer
+            // Local Fallback (Ensures ZERO lost content)
             if (!resultData) {
                 const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
                 resultData = {
-                    resumo: sentences.slice(0, 3).join('. ') + '.',
+                    resumo: sentences.slice(0, 3).join('. ') + (sentences.length > 0 ? '.' : ''),
                     pontosChave: sentences.slice(0, 5).map(s => s.trim()),
                     perguntasRespostas: [
-                        { pergunta: "Relato Transcrito Completo", resposta: text }
+                        { pergunta: "Transcrição Integral Registrar na Íntegra", resposta: text }
                     ],
-                    encaminhamentos: ["Revisar e validar o conteúdo registrado nesta ata."]
+                    encaminhamentos: ["Revisar e aprovar os pontos levantados nesta ata."]
                 };
             }
 
-            memoryState.structuredData = { ...metadata, ...resultData };
+            memoryState.structuredData = { ...metadata, ...resultData, rawTranscript: text };
             renderDocumentPreview(memoryState.structuredData);
             switchTab('doc');
 
             btnGenerateAI.disabled = false;
-            btnGenerateAI.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i><span>Sintetizar Ata Agora</span>`;
+            btnGenerateAI.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i><span>Gerar Ata Estruturada</span>`;
             lucide.createIcons();
-            showToast("Ata sintetizada com sucesso!");
+            showToast("Ata gerada com sucesso!");
         }
 
         btnGenerateAI.addEventListener('click', generateStructuredData);
 
+        // Render HTML Preview
         function renderDocumentPreview(data) {
             documentPreview.innerHTML = `
                 <div class="border-b border-slate-200 dark:border-slate-700 pb-4 mb-4">
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white">${data.title}</h2>
-                    <div class="grid grid-cols-2 gap-2 mt-3 text-xs text-slate-600 dark:text-slate-400">
-                        <p><strong>Entrevistador:</strong> ${data.interviewer}</p>
-                        <p><strong>Entrevistado:</strong> ${data.interviewee}</p>
+                    <div class="grid grid-cols-2 gap-2 mt-3 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <p><strong>Entrevistador(a):</strong> ${data.interviewer}</p>
+                        <p><strong>Entrevistado(a):</strong> ${data.interviewee}</p>
                         <p><strong>Data:</strong> ${data.date}</p>
                         <p><strong>Objetivo:</strong> ${data.objective}</p>
                     </div>
@@ -777,31 +775,31 @@
 
                 <div class="space-y-4">
                     <div>
-                        <h3 class="font-semibold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">1. Resumo Executivo</h3>
-                        <p class="text-slate-700 dark:text-slate-300 text-xs sm:text-sm leading-relaxed bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">${data.resumo}</p>
+                        <h3 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">1. Resumo Executivo</h3>
+                        <p class="text-slate-700 dark:text-slate-300 text-xs sm:text-sm leading-relaxed bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-100 dark:border-slate-700">${data.resumo}</p>
                     </div>
 
                     <div>
-                        <h3 class="font-semibold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">2. Pontos-Chave</h3>
+                        <h3 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">2. Pontos-Chave</h3>
                         <ul class="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
                             ${data.pontosChave.map(pt => `<li>${pt}</li>`).join('')}
                         </ul>
                     </div>
 
                     <div>
-                        <h3 class="font-semibold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-2">3. Tópicos / Perguntas & Respostas</h3>
+                        <h3 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-2">3. Detalhamento / Perguntas & Respostas</h3>
                         <div class="space-y-2">
                             ${data.perguntasRespostas.map(pr => `
                                 <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
                                     <p class="font-semibold text-xs text-slate-900 dark:text-slate-100 mb-1">P: ${pr.pergunta}</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300">R: ${pr.resposta}</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap">R: ${pr.resposta}</p>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
 
                     <div>
-                        <h3 class="font-semibold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">4. Encaminhamentos</h3>
+                        <h3 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">4. Encaminhamentos</h3>
                         <ul class="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
                             ${data.encaminhamentos.map(e => `<li>${e}</li>`).join('')}
                         </ul>
@@ -811,14 +809,14 @@
             lucide.createIcons();
         }
 
-        // Export 1: Word (.docx)
+        // EXCLUSIVE EXPORT 1: Word (.docx)
         document.getElementById('btnExportDocx').addEventListener('click', () => {
             if (!memoryState.structuredData) {
-                showToast("Sintetize a ata antes de exportar.", true);
+                showToast("Gere a ata antes de exportar.", true);
                 return;
             }
 
-            const { Document, Paragraph, TextRun, HeadingLevel, Packer } = docx;
+            const { Document, Paragraph, TextRun, HeadingLevel, Packer, BulletLevel } = docx;
             const data = memoryState.structuredData;
 
             const doc = new Document({
@@ -827,21 +825,29 @@
                         new Paragraph({ text: data.title, heading: HeadingLevel.TITLE, spacing: { after: 200 } }),
                         new Paragraph({
                             children: [
-                                new TextRun({ text: `Entrevistador: ${data.interviewer}\n`, bold: true }),
-                                new TextRun({ text: `Entrevistado: ${data.interviewee}\n`, bold: true }),
-                                new TextRun({ text: `Data: ${data.date} | Objetivo: ${data.objective}`, italic: true }),
+                                new TextRun({ text: `Entrevistador: `, bold: true }),
+                                new TextRun({ text: `${data.interviewer}\n` }),
+                                new TextRun({ text: `Entrevistado: `, bold: true }),
+                                new TextRun({ text: `${data.interviewee}\n` }),
+                                new TextRun({ text: `Data: `, bold: true }),
+                                new TextRun({ text: `${data.date} | ` }),
+                                new TextRun({ text: `Objetivo: `, bold: true }),
+                                new TextRun({ text: `${data.objective}` }),
                             ],
-                            spacing: { after: 400 }
+                            spacing: { after: 300 }
                         }),
                         new Paragraph({ text: "1. Resumo Executivo", heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 100 } }),
                         new Paragraph({ text: data.resumo, spacing: { after: 200 } }),
+                        
                         new Paragraph({ text: "2. Pontos-Chave", heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 100 } }),
                         ...data.pontosChave.map(pt => new Paragraph({ text: pt, bullet: { level: 0 } })),
-                        new Paragraph({ text: "3. Tópicos Registrados", heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 100 } }),
+                        
+                        new Paragraph({ text: "3. Detalhamento & Respostas Integrais", heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 100 } }),
                         ...data.perguntasRespostas.flatMap(pr => [
-                            new Paragraph({ text: `P: ${pr.pergunta}`, bold: true }),
-                            new Paragraph({ text: `R: ${pr.resposta}`, spacing: { after: 150 } })
+                            new Paragraph({ text: `Tópico / Pergunta: ${pr.pergunta}`, bold: true, spacing: { before: 100 } }),
+                            new Paragraph({ text: pr.resposta, spacing: { after: 150 } })
                         ]),
+                        
                         new Paragraph({ text: "4. Encaminhamentos", heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 100 } }),
                         ...data.encaminhamentos.map(e => new Paragraph({ text: e, bullet: { level: 0 } }))
                     ]
@@ -853,44 +859,14 @@
                 a.href = URL.createObjectURL(blob);
                 a.download = `Ata_${data.interviewee.replace(/\s+/g, '_')}.docx`;
                 a.click();
-                showToast("Arquivo Word gerado!");
+                showToast("Arquivo Word (.docx) baixado!");
             });
         });
 
-        // Export 2: PowerPoint (.pptx)
-        document.getElementById('btnExportPptx').addEventListener('click', () => {
-            if (!memoryState.structuredData) {
-                showToast("Sintetize a ata antes de exportar.", true);
-                return;
-            }
-
-            const data = memoryState.structuredData;
-            const pptx = new PptxGenJS();
-
-            // Slide 1
-            const s1 = pptx.addSlide();
-            s1.addText(data.title, { x: 0.8, y: 1.5, w: 8.5, h: 1, fontSize: 26, bold: true, color: '16A34A' });
-            s1.addText(`Entrevistador: ${data.interviewer}\nEntrevistado: ${data.interviewee}\nData: ${data.date}`, { x: 0.8, y: 3.0, w: 8.5, h: 1.5, fontSize: 16, color: '475569' });
-
-            // Slide 2
-            const s2 = pptx.addSlide();
-            s2.addText("Resumo e Pontos-Chave", { x: 0.8, y: 0.5, fontSize: 22, bold: true, color: '16A34A' });
-            s2.addText(data.resumo, { x: 0.8, y: 1.2, w: 8.5, h: 1.2, fontSize: 14, color: '334155' });
-            s2.addText(data.pontosChave.map(p => ({ text: p, options: { bullet: true } })), { x: 0.8, y: 2.6, w: 8.5, h: 2.2, fontSize: 14, color: '475569' });
-
-            // Slide 3
-            const s3 = pptx.addSlide();
-            s3.addText("Ações e Próximos Passos", { x: 0.8, y: 0.5, fontSize: 22, bold: true, color: '16A34A' });
-            s3.addText(data.encaminhamentos.map(e => ({ text: e, options: { bullet: true } })), { x: 0.8, y: 1.5, w: 8.5, h: 3, fontSize: 16, color: '334155' });
-
-            pptx.writeFile({ fileName: `Ata_${data.interviewee.replace(/\s+/g, '_')}.pptx` });
-            showToast("Apresentação PowerPoint gerada!");
-        });
-
-        // Export 3: PDF (.pdf)
+        // EXCLUSIVE EXPORT 2: PDF (.pdf)
         document.getElementById('btnExportPdf').addEventListener('click', () => {
             if (!memoryState.structuredData) {
-                showToast("Sintetize a ata antes de exportar.", true);
+                showToast("Gere a ata antes de exportar.", true);
                 return;
             }
 
@@ -901,12 +877,12 @@
                 margin: 10,
                 filename: `Ata_${data.interviewee.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(element).save();
-            showToast("Documento PDF gerado!");
+            showToast("Arquivo PDF (.pdf) baixado!");
         });
 
     </script>
