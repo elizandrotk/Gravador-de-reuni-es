@@ -9,7 +9,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- docx library -->
-    <script src="https://unpkg.com/docx@8.2.2/build/index.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -58,7 +58,7 @@
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
             <i data-lucide="lock" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado localmente no seu navegador. A transcrição gerada preserva 100% do conteúdo falado.
+                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado exclusivamente na memória RAM do navegador. A transcrição preserva 100% do que é falado sem intermediários.
             </div>
         </div>
 
@@ -91,7 +91,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <button id="recordBtn" onclick="toggleRecording()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm">
+                    <button id="recordBtn" onclick="toggleRecording()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm cursor-pointer">
                         <i data-lucide="mic" id="recordIcon" class="w-5 h-5"></i>
                         <span id="recordText">Iniciar Gravação Contínua</span>
                     </button>
@@ -104,15 +104,15 @@
                 <!-- Modos de Idioma -->
                 <div class="flex items-center gap-2 text-xs">
                     <label class="text-slate-500">Idioma:</label>
-                    <select id="languageSelect" onchange="changeLanguage()" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <select id="languageSelect" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         <option value="pt-BR">Português (Brasil)</option>
                         <option value="en-US">Inglês (EUA)</option>
                         <option value="es-ES">Espanhol</option>
                     </select>
                 </div>
             </div>
-            <!-- Alerta de Erro de Microfone -->
-            <div id="micErrorMsg" class="hidden mt-3 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg"></div>
+            <!-- Mensagens de Alerta -->
+            <div id="micAlert" class="hidden mt-3 p-3 rounded-lg text-xs font-medium"></div>
         </div>
 
         <!-- Área Principal de Transcrição -->
@@ -128,13 +128,13 @@
             </div>
             
             <div class="flex-1 p-4 relative">
-                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Inicie a gravação e fale ao microfone. O texto transcrito aparecerá aqui instantaneamente..."></textarea>
+                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Clique em 'Iniciar Gravação Contínua' e comece a falar. O texto surgirá aqui em tempo real..."></textarea>
             </div>
 
             <!-- Botões de Exportação Direta -->
             <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl flex flex-wrap items-center justify-between gap-3">
                 <div class="text-xs text-slate-500 italic">
-                    * Baixe instantaneamente o documento contendo o cabeçalho e o texto integral.
+                    * Baixe instantaneamente o documento contendo o cabeçalho e a transcrição integral.
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="exportToWord()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 font-medium transition shadow-sm">
@@ -175,7 +175,7 @@
 
         let isRecording = false;
         let recognition = null;
-        let baseTranscript = "";
+        let committedText = "";
 
         const textarea = document.getElementById('transcriptText');
         textarea.addEventListener('input', updateCounts);
@@ -188,80 +188,15 @@
             document.getElementById('charCount').innerText = `${chars} caracteres`;
         }
 
-        function initSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                showError("Seu navegador não suporta a API de reconhecimento de fala. Por favor, utilize o Google Chrome ou Microsoft Edge no computador/Chromebook.");
-                return null;
-            }
-
-            const rec = new SpeechRecognition();
-            rec.continuous = true;
-            rec.interimResults = true;
-            rec.lang = document.getElementById('languageSelect').value;
-
-            rec.onstart = () => {
-                hideError();
-                isRecording = true;
-                updateRecordingUI(true);
-            };
-
-            rec.onresult = (event) => {
-                let sessionFinal = "";
-                let sessionInterim = "";
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        sessionFinal += event.results[i][0].transcript + " ";
-                    } else {
-                        sessionInterim += event.results[i][0].transcript;
-                    }
-                }
-
-                if (sessionFinal) {
-                    baseTranscript += sessionFinal;
-                }
-
-                textarea.value = baseTranscript + sessionInterim;
-                updateCounts();
-                textarea.scrollTop = textarea.scrollHeight;
-            };
-
-            rec.onend = () => {
-                // Se ainda deveria estar gravando, tenta reiniciar automaticamente
-                if (isRecording) {
-                    baseTranscript = textarea.value;
-                    try {
-                        rec.start();
-                    } catch (e) {
-                        console.warn('Reconexão do microfone:', e);
-                    }
-                } else {
-                    updateRecordingUI(false);
-                }
-            };
-
-            rec.onerror = (event) => {
-                if (event.error === 'no-speech') return;
-                console.error("Erro no microfone:", event.error);
-                if (event.error === 'not-allowed') {
-                    showError("Acesso ao microfone foi bloqueado pelo navegador. Por favor, clique no ícone de cadeado ao lado do endereço do site e permita o acesso ao microfone.");
-                    stopRecording();
-                } else if (event.error === 'network') {
-                    showError("Erro de conexão com o serviço de reconhecimento de voz. Verifique sua conexão com a internet.");
-                }
-            };
-
-            return rec;
+        function showAlert(msg, isError = true) {
+            const alertDiv = document.getElementById('micAlert');
+            alertDiv.innerText = msg;
+            alertDiv.className = `mt-3 p-3 rounded-lg text-xs font-medium ${isError ? 'bg-rose-50 border border-rose-200 text-rose-700' : 'bg-amber-50 border border-amber-200 text-amber-700'}`;
+            alertDiv.classList.remove('hidden');
         }
 
-        // Inicializa a instância na carga da página
-        recognition = initSpeechRecognition();
-
-        function changeLanguage() {
-            if (recognition) {
-                recognition.lang = document.getElementById('languageSelect').value;
-            }
+        function hideAlert() {
+            document.getElementById('micAlert').classList.add('hidden');
         }
 
         function toggleRecording() {
@@ -273,22 +208,88 @@
         }
 
         function startRecording() {
-            hideError();
-            if (!recognition) {
-                recognition = initSpeechRecognition();
+            hideAlert();
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                showAlert("Seu navegador não possui suporte para gravação de voz. Utilize o Google Chrome ou Microsoft Edge no seu computador/Chromebook.");
+                return;
             }
-            if (!recognition) return;
 
-            baseTranscript = textarea.value;
-            if (baseTranscript.length > 0 && !baseTranscript.endsWith(' ') && !baseTranscript.endsWith('\n')) {
-                baseTranscript += ' ';
+            // Sincroniza o texto que já pode estar na caixa
+            committedText = textarea.value;
+            if (committedText.length > 0 && !committedText.endsWith(' ') && !committedText.endsWith('\n')) {
+                committedText += ' ';
             }
 
             try {
-                isRecording = true;
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = document.getElementById('languageSelect').value;
+
+                recognition.onstart = () => {
+                    isRecording = true;
+                    updateUI(true);
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let newFinalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcriptSegment = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            newFinalTranscript += transcriptSegment + ' ';
+                        } else {
+                            interimTranscript += transcriptSegment;
+                        }
+                    }
+
+                    if (newFinalTranscript) {
+                        committedText += newFinalTranscript;
+                    }
+
+                    textarea.value = committedText + interimTranscript;
+                    updateCounts();
+                    textarea.scrollTop = textarea.scrollHeight;
+                };
+
+                recognition.onerror = (event) => {
+                    console.warn("Evento de reconhecimento:", event.error);
+                    if (event.error === 'no-speech') return;
+
+                    if (event.error === 'not-allowed') {
+                        showAlert("O acesso ao microfone foi negado pelo navegador. Clique no ícone de cadeado/microfone na barra de endereços (topo do navegador) e selecione 'Permitir'.");
+                        stopRecording();
+                    } else if (event.error === 'network') {
+                        showAlert("Falha de rede ao se conectar com o serviço de voz. Verifique sua conexão à internet.");
+                    }
+                };
+
+                recognition.onend = () => {
+                    if (isRecording) {
+                        committedText = textarea.value;
+                        if (committedText.length > 0 && !committedText.endsWith(' ')) {
+                            committedText += ' ';
+                        }
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.warn("Reconexão pós-silêncio:", e);
+                        }
+                    } else {
+                        updateUI(false);
+                    }
+                };
+
                 recognition.start();
-            } catch (e) {
-                console.warn("Iniciando gravação:", e);
+
+            } catch (err) {
+                console.error("Erro ao iniciar captura:", err);
+                showAlert("Não foi possível acessar o microfone. Verifique se outro aplicativo não está usando o microfone.");
+                isRecording = false;
+                updateUI(false);
             }
         }
 
@@ -301,11 +302,11 @@
                     console.warn("Parando gravação:", e);
                 }
             }
-            baseTranscript = textarea.value;
-            updateRecordingUI(false);
+            committedText = textarea.value;
+            updateUI(false);
         }
 
-        function updateRecordingUI(active) {
+        function updateUI(active) {
             const recordBtn = document.getElementById('recordBtn');
             const recordText = document.getElementById('recordText');
             const recordIcon = document.getElementById('recordIcon');
@@ -327,28 +328,17 @@
             lucide.createIcons();
         }
 
-        function showError(msg) {
-            const errDiv = document.getElementById('micErrorMsg');
-            errDiv.innerText = msg;
-            errDiv.classList.remove('hidden');
-        }
-
-        function hideError() {
-            const errDiv = document.getElementById('micErrorMsg');
-            errDiv.classList.add('hidden');
-        }
-
         function wipeAllData() {
             if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
                 if (isRecording) stopRecording();
-                baseTranscript = "";
+                committedText = "";
                 textarea.value = "";
                 document.getElementById('headerInterviewer').value = "";
                 document.getElementById('headerInterviewee').value = "";
                 document.getElementById('headerSubject').value = "";
                 document.getElementById('headerDate').valueAsDate = new Date();
                 updateCounts();
-                hideError();
+                hideAlert();
             }
         }
 
@@ -364,76 +354,78 @@
             const intervieweeVal = document.getElementById('headerInterviewee').value || 'Não informado';
             const subjectVal = document.getElementById('headerSubject').value || 'Não informado';
 
-            const doc = new docx.Document({
-                sections: [{
-                    properties: {},
-                    children: [
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "MADRE BÁRBARA ATA FÁCIL", bold: true, size: 28, color: "1E1B4B" })
-                            ],
-                            spaceAfter: 150
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Ata / Transcrição de Entrevista", italic: true, size: 20, color: "475569" })
-                            ],
-                            spaceAfter: 300
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Data da Reunião: ", bold: true }),
-                                new docx.TextRun(dateVal)
-                            ]
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
-                                new docx.TextRun(interviewerVal)
-                            ]
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
-                                new docx.TextRun(intervieweeVal)
-                            ]
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
-                                new docx.TextRun(subjectVal)
-                            ],
-                            spaceAfter: 400
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
-                            ],
-                            spaceAfter: 200
-                        }),
-                        ...textContent.split('\n').map(paragraph => 
+            try {
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {},
+                        children: [
                             new docx.Paragraph({
-                                children: [new docx.TextRun({ text: paragraph, size: 22 })],
+                                children: [
+                                    new docx.TextRun({ text: "MADRE BÁRBARA ATA FÁCIL", bold: true, size: 28, color: "1E1B4B" })
+                                ],
                                 spaceAfter: 150
-                            })
-                        )
-                    ]
-                }]
-            });
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Ata / Transcrição de Entrevista", italic: true, size: 20, color: "475569" })
+                                ],
+                                spaceAfter: 300
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Data da Reunião: ", bold: true }),
+                                    new docx.TextRun(dateVal)
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
+                                    new docx.TextRun(interviewerVal)
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
+                                    new docx.TextRun(intervieweeVal)
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
+                                    new docx.TextRun(subjectVal)
+                                ],
+                                spaceAfter: 400
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
+                                ],
+                                spaceAfter: 200
+                            }),
+                            ...textContent.split('\n').map(paragraph => 
+                                new docx.Paragraph({
+                                    children: [new docx.TextRun({ text: paragraph, size: 22 })],
+                                    spaceAfter: 150
+                                })
+                            )
+                        ]
+                    }]
+                });
 
-            docx.Packer.toBlob(doc).then(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Ata_MadreBarbara_${dateVal}.docx`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }).catch(err => {
+                docx.Packer.toBlob(doc).then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Ata_MadreBarbara_${dateVal}.docx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            } catch (err) {
                 console.error("Erro Word:", err);
-                alert("Erro ao gerar o arquivo Word.");
-            });
+                alert("Ocorreu um erro ao gerar o documento Word.");
+            }
         }
 
         function exportToPDF() {
@@ -465,7 +457,7 @@
             }).catch(err => {
                 console.error("Erro PDF:", err);
                 renderArea.classList.add('hidden');
-                alert("Erro ao gerar o PDF.");
+                alert("Ocorreu um erro ao gerar o arquivo PDF.");
             });
         }
     </script>
