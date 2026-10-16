@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AtaFácil - Transcrição Integral e Gerador de Atas</title>
+    <title>AtaFácil Madre Bárbara - Transcrição Fiel & Gerador de Atas</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -41,7 +41,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
-                        AtaFácil Pro
+                        AtaFácil Madre Bárbara
                     </h1>
                     <p class="text-xs text-slate-400">Transcrição Fiel 100% Completa & Atas</p>
                 </div>
@@ -55,7 +55,7 @@
                 </button>
                 <button id="btnNuke" title="Apaga absolutamente todos os dados da memória imediatamente" class="px-3 py-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-rose-100 text-xs sm:text-sm font-medium transition flex items-center space-x-2 border border-rose-800/50">
                     <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
-                    <span>Destruir Dados</span>
+                    <span>Destruir Todos os Dados</span>
                 </button>
             </div>
         </div>
@@ -68,9 +68,35 @@
         <div class="bg-indigo-950/30 border border-indigo-800/40 rounded-xl p-4 flex items-start space-x-3 text-xs sm:text-sm text-indigo-200">
             <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"></i>
             <div>
-                <strong class="font-semibold text-indigo-300">Garantia de Fidelidade Integral (100% Fiel):</strong> O áudio capturado ou enviado é transcrito palavra por palavra sem qualquer tipo de resumo ou corte automático. Você pode exportar diretamente para Word (.docx) ou PDF a qualquer momento sem perder nenhuma fala.
+                <strong class="font-semibold text-indigo-300">Garantia de Fidelidade Integral (100% Fiel):</strong> O áudio capturado ou enviado é transcrito palavra por palavra sem qualquer tipo de resumo ou corte automático. O cabeçalho preenchido abaixo é exportado automaticamente no topo do documento final em Word (.docx) ou PDF (.pdf).
             </div>
         </div>
+
+        <!-- SEÇÃO: DADOS IDENTIFICADORES DA REUNIÃO / ENTREVISTA -->
+        <section class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 shadow-sm">
+            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-800/80 pb-3">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-indigo-400"></i>
+                Cabeçalho da Reunião / Entrevista
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label for="metaDate" class="block text-xs font-medium text-slate-400 mb-1">Data da Reunião / Entrevista</label>
+                    <input type="date" id="metaDate" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="metaInterviewer" class="block text-xs font-medium text-slate-400 mb-1">Entrevistador / Responsável</label>
+                    <input type="text" id="metaInterviewer" placeholder="Ex: Prof. Carlos Silva" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder-slate-600">
+                </div>
+                <div>
+                    <label for="metaInterviewee" class="block text-xs font-medium text-slate-400 mb-1">Entrevistado(a) / Participante(s)</label>
+                    <input type="text" id="metaInterviewee" placeholder="Ex: João Santos, Maria Lima" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder-slate-600">
+                </div>
+                <div>
+                    <label for="metaPurpose" class="block text-xs font-medium text-slate-400 mb-1">Motivo / Assunto Principal</label>
+                    <input type="text" id="metaPurpose" placeholder="Ex: Alinhamento de Projeto TCC" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder-slate-600">
+                </div>
+            </div>
+        </section>
 
         <!-- Dashboard de Gravação e Entrada de Áudio -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -173,7 +199,7 @@
                         <i data-lucide="file-spreadsheet" class="w-5 h-5 text-indigo-400"></i>
                         Visualização e Exportação de Documento
                     </h2>
-                    <p class="text-xs text-slate-400">Escolha exportar a transcrição integral ou a ata formatada para Word ou PDF.</p>
+                    <p class="text-xs text-slate-400">O cabeçalho e o conteúdo abaixo serão exportados para Word ou PDF.</p>
                 </div>
 
                 <!-- BOTÕES DE EXPORTAÇÃO EXCLUSIVOS (DOCX E PDF APENAS) -->
@@ -211,7 +237,7 @@
                 </button>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
-                Para efetuar a correção ortográfica inteligente ou gerar atas estruturadas com IA, insira sua chave gratuita do Google Gemini API. Ela é salva exclusivamente no armazenamento do seu navegador (localStorage).
+                Para efetuar a correção ortográfica inteligente ou gerar atas estruturadas com IA, insira sua chave gratuita do Google Gemini API. Ela é salva exclusivamente no armazenamento local do seu navegador (localStorage).
             </p>
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1">Sua Chave API (Gemini):</label>
@@ -237,6 +263,9 @@
     <script>
         // Inicialização de Ícones Lucide
         lucide.createIcons();
+
+        // Data Atual Padrão
+        document.getElementById('metaDate').valueAsDate = new Date();
 
         // Estado Global do App
         const state = {
@@ -274,7 +303,13 @@
         const btnExportDocx = document.getElementById('btnExportDocx');
         const btnExportPdf = document.getElementById('btnExportPdf');
 
-        // Notificação Toast
+        // Metadados do Cabeçalho
+        const metaDate = document.getElementById('metaDate');
+        const metaInterviewer = document.getElementById('metaInterviewer');
+        const metaInterviewee = document.getElementById('metaInterviewee');
+        const metaPurpose = document.getElementById('metaPurpose');
+
+        // Função de Notificação Toast
         function showToast(message, type = "info") {
             const toast = document.getElementById('toastNotification');
             const toastMsg = document.getElementById('toastMessage');
@@ -302,6 +337,16 @@
             }, 3500);
         }
 
+        // Gera o texto formatado do cabeçalho
+        function getHeaderFormattedText() {
+            const dateVal = metaDate.value ? new Date(metaDate.value).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não informada';
+            const interviewer = metaInterviewer.value.trim() || 'Não informado';
+            const interviewee = metaInterviewee.value.trim() || 'Não informado';
+            const purpose = metaPurpose.value.trim() || 'Não informado';
+
+            return `REGISTRO OFICIAL DE REUNIÃO / ENTREVISTA\n--------------------------------------------------\nData: ${dateVal}\nEntrevistador / Responsável: ${interviewer}\nEntrevistado(a) / Participante(s): ${interviewee}\nMotivo / Assunto: ${purpose}\n--------------------------------------------------\n\n`;
+        }
+
         // Atualizador de Contagem de Palavras e Caracteres
         function updateStats() {
             const text = transcriptTextarea.value.trim();
@@ -312,7 +357,7 @@
             charCount.textContent = chars;
             state.fullTranscript = text;
 
-            // Sincroniza visualizador se estiver vazio
+            // Sincroniza visualizador se não tiver sido editado manualmente
             if (!outputContent.dataset.userEdited) {
                 outputContent.innerText = text || "O documento pronto para exportação será exibido aqui. Você pode editar este texto manualmente antes de baixar em formato Word ou PDF.";
             }
@@ -336,8 +381,6 @@
             rec.continuous = true;
             rec.interimResults = true;
             rec.lang = 'pt-BR';
-
-            let interimTranscript = '';
 
             rec.onresult = (event) => {
                 let finalTranscriptChunk = '';
@@ -379,12 +422,12 @@
             };
 
             rec.onend = () => {
-                // Loop Continuo Ininterrupto (Auto-Reconnect)
+                // Loop Contínuo Ininterrupto (Auto-Reconnect em caso de silêncio/disconnect)
                 if (state.isRecording) {
                     try {
                         rec.start();
                     } catch (e) {
-                        console.log("Reconectando gravação...");
+                        console.log("Reconectando gravação automaticamente...");
                     }
                 }
             };
@@ -461,11 +504,10 @@
             if (!file) return;
 
             fileNameDisplay.textContent = file.name;
-            showToast(`Arquivo "${file.name}" carregado. Iniciando transcrição por reprodução...`, "info");
+            showToast(`Arquivo "${file.name}" carregado. Iniciando transcrição por áudio...`, "info");
 
             const audio = new Audio(URL.createObjectURL(file));
             
-            // Garante captura do áudio local reproduzido via SpeechRecognition
             if (!state.recognition) {
                 state.recognition = initSpeechRecognition();
             }
@@ -492,7 +534,7 @@
             showToast("Caixa de texto limpa.", "info");
         });
 
-        // Copiar Texto para Área de Transferência (Compatível com iFrames e restrições)
+        // Copiar Texto para Área de Transferência
         btnCopyText.addEventListener('click', () => {
             const textToCopy = transcriptTextarea.value;
             if (!textToCopy) {
@@ -509,16 +551,20 @@
             }
         });
 
-        // Destruição Completa de Dados da Memória RAM (Privacidade)
+        // Destruição Completa de Dados da Memória RAM (Privacidade Total)
         btnNuke.addEventListener('click', () => {
             stopRecording();
             transcriptTextarea.value = "";
             outputContent.innerHTML = '<p class="text-slate-500 italic">O documento pronto para exportação será exibido aqui.</p>';
+            metaInterviewer.value = "";
+            metaInterviewee.value = "";
+            metaPurpose.value = "";
+            metaDate.valueAsDate = new Date();
             state.fullTranscript = "";
             fileNameDisplay.textContent = "Selecionar Arquivo de Áudio";
             audioFileInput.value = "";
             updateStats();
-            showToast("Todos os dados foram apagados da memória com sucesso!", "success");
+            showToast("Todos os dados foram completamente destruídos da memória!", "success");
         });
 
         // Modal de Configuração de Chave API
@@ -539,7 +585,7 @@
             showToast("Chave API salva com sucesso!", "success");
         });
 
-        // Integração com Inteligência Artificial Gemini (Sem Omissão / Sem Resumos)
+        // Chamada à API Gemini
         async function callGeminiApi(promptText) {
             if (!state.geminiApiKey) {
                 apiKeyModal.classList.remove('hidden');
@@ -632,7 +678,7 @@ ${currentText}
             }
         });
 
-        // EXPORTAÇÃO EXCLUSIVA PARA WORD (.DOCX) - Direta do Texto Completo
+        // EXPORTAÇÃO EXCLUSIVA PARA WORD (.DOCX) - Com Cabeçalho + Texto Íntegro
         btnExportDocx.addEventListener('click', () => {
             const textToExport = outputContent.innerText || transcriptTextarea.value;
 
@@ -642,16 +688,68 @@ ${currentText}
             }
 
             try {
+                const dateVal = metaDate.value ? new Date(metaDate.value).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não informada';
+                const interviewer = metaInterviewer.value.trim() || 'Não informado';
+                const interviewee = metaInterviewee.value.trim() || 'Não informado';
+                const purpose = metaPurpose.value.trim() || 'Não informado';
+
+                // Tabela de Cabeçalho no Word
+                const headerTable = new docx.Table({
+                    width: { size: 100, type: docx.WidthType.PERCENTAGE },
+                    rows: [
+                        new docx.TableRow({
+                            children: [
+                                new docx.TableCell({
+                                    children: [
+                                        new docx.Paragraph({
+                                            children: [
+                                                new docx.TextRun({ text: "REGISTRO OFICIAL DE REUNIÃO / ENTREVISTA", bold: true, size: 24, font: "Calibri", color: "1E293B" })
+                                            ],
+                                            alignment: docx.AlignmentType.CENTER,
+                                            spacing: { after: 120 }
+                                        }),
+                                        new docx.Paragraph({
+                                            children: [
+                                                new docx.TextRun({ text: "Data: ", bold: true, size: 20, font: "Calibri" }),
+                                                new docx.TextRun({ text: dateVal, size: 20, font: "Calibri" }),
+                                                new docx.TextRun({ text: "    |    Entrevistador: ", bold: true, size: 20, font: "Calibri" }),
+                                                new docx.TextRun({ text: interviewer, size: 20, font: "Calibri" })
+                                            ],
+                                            spacing: { after: 80 }
+                                        }),
+                                        new docx.Paragraph({
+                                            children: [
+                                                new docx.TextRun({ text: "Entrevistado(a): ", bold: true, size: 20, font: "Calibri" }),
+                                                new docx.TextRun({ text: interviewee, size: 20, font: "Calibri" })
+                                            ],
+                                            spacing: { after: 80 }
+                                        }),
+                                        new docx.Paragraph({
+                                            children: [
+                                                new docx.TextRun({ text: "Motivo / Assunto: ", bold: true, size: 20, font: "Calibri" }),
+                                                new docx.TextRun({ text: purpose, size: 20, font: "Calibri" })
+                                            ],
+                                            spacing: { after: 80 }
+                                        })
+                                    ],
+                                    padding: { top: 140, bottom: 140, left: 140, right: 140 }
+                                })
+                            ]
+                        })
+                    ]
+                });
+
+                // Parágrafos do Texto Principal
                 const paragraphs = textToExport.split('\n').map(p => {
                     return new docx.Paragraph({
                         children: [
                             new docx.TextRun({
                                 text: p,
-                                size: 24, // 12pt
+                                size: 22, // 11pt
                                 font: "Calibri"
                             })
                         ],
-                        spacing: { after: 200 }
+                        spacing: { after: 160 }
                     });
                 });
 
@@ -659,17 +757,8 @@ ${currentText}
                     sections: [{
                         properties: {},
                         children: [
-                            new docx.Paragraph({
-                                children: [
-                                    new docx.TextRun({
-                                        text: "Documento de Transcrição / Ata Oficial",
-                                        bold: true,
-                                        size: 32,
-                                        font: "Calibri"
-                                    })
-                                ],
-                                spacing: { after: 400 }
-                            }),
+                            headerTable,
+                            new docx.Paragraph({ children: [], spacing: { after: 300 } }),
                             ...paragraphs
                         ]
                     }]
@@ -679,7 +768,7 @@ ${currentText}
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `Transcricao_Integral_${new Date().toISOString().slice(0,10)}.docx`;
+                    a.download = `Ata_Transcricao_${new Date().toISOString().slice(0,10)}.docx`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -693,7 +782,7 @@ ${currentText}
             }
         });
 
-        // EXPORTAÇÃO EXCLUSIVA PARA PDF (.PDF) - Direta do Texto Completo
+        // EXPORTAÇÃO EXCLUSIVA PARA PDF (.PDF) - Com Cabeçalho + Texto Íntegro
         btnExportPdf.addEventListener('click', () => {
             const textToExport = outputContent.innerText || transcriptTextarea.value;
 
@@ -702,23 +791,39 @@ ${currentText}
                 return;
             }
 
+            const dateVal = metaDate.value ? new Date(metaDate.value).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não informada';
+            const interviewer = metaInterviewer.value.trim() || 'Não informado';
+            const interviewee = metaInterviewee.value.trim() || 'Não informado';
+            const purpose = metaPurpose.value.trim() || 'Não informado';
+
             // Elemento temporário para estilização limpa na exportação em PDF
             const container = document.createElement('div');
             container.style.padding = '30px';
             container.style.fontFamily = 'Arial, sans-serif';
-            container.style.color = '#1e293b';
+            container.style.color = '#0f172a';
             container.style.lineHeight = '1.6';
-            container.style.fontSize = '12pt';
+            container.style.fontSize = '11pt';
 
-            const title = document.createElement('h1');
-            title.textContent = "Transcrição / Ata Oficial";
-            title.style.fontSize = '18pt';
-            title.style.fontWeight = 'bold';
-            title.style.marginBottom = '20px';
-            title.style.borderBottom = '2px solid #6366f1';
-            title.style.paddingBottom = '8px';
-            container.appendChild(title);
+            // Bloco de Cabeçalho PDF
+            const headerBox = document.createElement('div');
+            headerBox.style.border = '1px solid #cbd5e1';
+            headerBox.style.borderRadius = '8px';
+            headerBox.style.backgroundColor = '#f8fafc';
+            headerBox.style.padding = '16px';
+            headerBox.style.marginBottom = '24px';
 
+            headerBox.innerHTML = `
+                <h2 style="margin: 0 0 12px 0; font-size: 14pt; color: #1e293b; text-align: center; font-weight: bold; text-transform: uppercase;">Registro Oficial de Reunião / Entrevista</h2>
+                <div style="font-size: 10pt; color: #334155;">
+                    <p style="margin: 4px 0;"><strong>Data:</strong> ${dateVal}</p>
+                    <p style="margin: 4px 0;"><strong>Entrevistador / Responsável:</strong> ${interviewer}</p>
+                    <p style="margin: 4px 0;"><strong>Entrevistado(a) / Participante(s):</strong> ${interviewee}</p>
+                    <p style="margin: 4px 0;"><strong>Motivo / Assunto:</strong> ${purpose}</p>
+                </div>
+            `;
+            container.appendChild(headerBox);
+
+            // Conteúdo Principal
             const content = document.createElement('div');
             content.style.whiteSpace = 'pre-wrap';
             content.textContent = textToExport;
@@ -726,7 +831,7 @@ ${currentText}
 
             const opt = {
                 margin:       15,
-                filename:     `Transcricao_Integral_${new Date().toISOString().slice(0,10)}.pdf`,
+                filename:     `Ata_Transcricao_${new Date().toISOString().slice(0,10)}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
