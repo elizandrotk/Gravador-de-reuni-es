@@ -1,852 +1,489 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-slate-900 text-slate-100">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AtaFácil Madre Bárbara - Transcrição Fiel & Gerador de Atas</title>
+    <title>Madre Bárbara Ata Fácil</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- docx.js para exportação real em Word .docx -->
-    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
-    <!-- html2pdf.js / jsPDF para exportação em PDF -->
+    <!-- docx library -->
+    <script src="https://unpkg.com/docx@8.2.2/build/index.js"></script>
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
-        .recording-pulse {
-            animation: pulse-red 1.5s infinite;
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
         }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
-            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
-<body class="h-full flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- Header / Navbar -->
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
-                    <i data-lucide="mic" class="w-6 h-6"></i>
-                </div>
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="mic" class="w-8 h-8 text-indigo-200"></i>
                 <div>
-                    <h1 class="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
-                        AtaFácil Madre Bárbara
-                    </h1>
-                    <p class="text-xs text-slate-400">Transcrição Fiel 100% Completa & Atas</p>
+                    <h1 class="text-xl font-bold leading-tight">Madre Bárbara Ata Fácil</h1>
+                    <p class="text-xs text-indigo-200">Transcrição de Entrevistas & Atas | 100% Privado e Local</p>
                 </div>
             </div>
-
-            <!-- Botões de Ação Topo -->
-            <div class="flex items-center space-x-2 sm:space-x-3">
-                <button id="btnSettings" title="Configurar Chave API Gemini" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs sm:text-sm font-medium transition flex items-center space-x-2 border border-slate-700">
-                    <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
-                    <span class="hidden sm:inline">Chave Gemini AI</span>
-                </button>
-                <button id="btnNuke" title="Apaga absolutamente todos os dados da memória imediatamente" class="px-3 py-2 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-rose-100 text-xs sm:text-sm font-medium transition flex items-center space-x-2 border border-rose-800/50">
-                    <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
-                    <span>Destruir Todos os Dados</span>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1"></i> Sem Banco de Dados
+                </span>
+                <button onclick="wipeAllData()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar Tudo
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
-        <!-- Banner Privacidade e Instrução de Fidelidade -->
-        <div class="bg-indigo-950/30 border border-indigo-800/40 rounded-xl p-4 flex items-start space-x-3 text-xs sm:text-sm text-indigo-200">
-            <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"></i>
+        <!-- Banner de Privacidade -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
+            <i data-lucide="lock" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <strong class="font-semibold text-indigo-300">Garantia de Fidelidade Integral (100% Fiel):</strong> O áudio capturado ou enviado é transcrito palavra por palavra sem qualquer tipo de resumo ou corte automático. O cabeçalho preenchido abaixo é exportado automaticamente no topo do documento final em Word (.docx) ou PDF (.pdf).
+                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado localmente na memória RAM do navegador. A transcrição gerada preserva 100% do que foi falado.
             </div>
         </div>
 
-        <!-- SEÇÃO: DADOS IDENTIFICADORES DA REUNIÃO / ENTREVISTA -->
-        <section class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 shadow-sm">
-            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-800/80 pb-3">
-                <i data-lucide="clipboard-list" class="w-4 h-4 text-indigo-400"></i>
-                Cabeçalho da Reunião / Entrevista
+        <!-- Formulário do Cabeçalho Institucional -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i> Identificação da Reunião / Entrevista
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <label for="metaDate" class="block text-xs font-medium text-slate-400 mb-1">Data da Reunião / Entrevista</label>
-                    <input type="date" id="metaDate" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Data da Reunião</label>
+                    <input type="date" id="headerDate" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label for="metaInterviewer" class="block text-xs font-medium text-slate-400 mb-1">Entrevistador / Responsável</label>
-                    <input type="text" id="metaInterviewer" placeholder="Ex: Prof. Carlos Silva" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder-slate-600">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Entrevistador / Responsável</label>
+                    <input type="text" id="headerInterviewer" placeholder="Ex: Prof. Dr. João Silva" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label for="metaInterviewee" class="block text-xs font-medium text-slate-400 mb-1">Entrevistado(a) / Participante(s)</label>
-                    <input type="text" id="metaInterviewee" placeholder="Ex: João Santos, Maria Lima" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder-slate-600">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Entrevistado(a)</label>
+                    <input type="text" id="headerInterviewee" placeholder="Ex: Maria Oliveira" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label for="metaPurpose" class="block text-xs font-medium text-slate-400 mb-1">Motivo / Assunto Principal</label>
-                    <input type="text" id="metaPurpose" placeholder="Ex: Alinhamento de Projeto TCC" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-2.5 text-xs sm:text-sm text-slate-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none placeholder-slate-600">
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard de Gravação e Entrada de Áudio -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Painel de Controle de Captura (Esquerda) -->
-            <div class="lg:col-span-1 bg-slate-950/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-6">
-                <div>
-                    <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
-                        Captação de Áudio
-                    </h2>
-
-                    <!-- Botão de Gravação Principal -->
-                    <div class="flex flex-col items-center justify-center p-6 bg-slate-900/80 rounded-xl border border-slate-800 mb-4 text-center">
-                        <button id="btnRecord" class="w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-all duration-300 transform hover:scale-105 active:scale-95 mb-3 focus:outline-none">
-                            <i id="recIcon" data-lucide="mic" class="w-8 h-8"></i>
-                        </button>
-                        <div id="recStatusText" class="font-semibold text-slate-200 text-sm">Pronto para Gravar</div>
-                        <div id="recTimer" class="text-xs text-slate-400 font-mono mt-1">00:00:00</div>
-                    </div>
-
-                    <!-- Divisor Ou -->
-                    <div class="relative flex py-2 items-center">
-                        <div class="flex-grow border-t border-slate-800"></div>
-                        <span class="flex-shrink mx-3 text-xs text-slate-500 uppercase tracking-widest font-semibold">Ou Importe Áudio</span>
-                        <div class="flex-grow border-t border-slate-800"></div>
-                    </div>
-
-                    <!-- Input de Arquivo de Áudio -->
-                    <div class="mt-2">
-                        <label class="block text-xs font-medium text-slate-400 mb-2">Arquivo de Áudio Local (MP3, WAV, M4A, WEBM)</label>
-                        <div class="relative">
-                            <input type="file" id="audioFileInput" accept="audio/*" class="hidden">
-                            <button onclick="document.getElementById('audioFileInput').click()" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-indigo-500/50 rounded-xl text-slate-300 text-xs sm:text-sm font-medium transition flex items-center justify-center gap-2">
-                                <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-400"></i>
-                                <span id="fileNameDisplay">Selecionar Arquivo de Áudio</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Estatísticas da Transcrição -->
-                <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-800/80 space-y-2 text-xs">
-                    <div class="flex justify-between text-slate-400">
-                        <span>Total de Palavras:</span>
-                        <strong id="wordCount" class="text-slate-200 font-mono">0</strong>
-                    </div>
-                    <div class="flex justify-between text-slate-400">
-                        <span>Total de Caracteres:</span>
-                        <strong id="charCount" class="text-slate-200 font-mono">0</strong>
-                    </div>
-                    <div class="flex justify-between text-slate-400">
-                        <span>Status Reconexão:</span>
-                        <strong id="reconStatus" class="text-emerald-400">Ativa (Ininterrupta)</strong>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Caixa de Texto da Transcrição Ao Vivo (Direita) -->
-            <div class="lg:col-span-2 bg-slate-950/60 border border-slate-800 rounded-2xl p-5 flex flex-col">
-                <div class="flex items-center justify-between mb-3">
-                    <label for="transcriptTextarea" class="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
-                        Transcrição Integral em Tempo Real
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <button id="btnClearText" title="Limpar Caixa de Texto" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1 px-2 py-1 bg-slate-900 rounded border border-slate-800">
-                            <i data-lucide="eraser" class="w-3.5 h-3.5"></i> Limpar
-                        </button>
-                        <button id="btnCopyText" title="Copiar Texto Integral" class="text-xs text-slate-400 hover:text-indigo-300 transition flex items-center gap-1 px-2 py-1 bg-slate-900 rounded border border-slate-800">
-                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Textarea Interativa de Edição -->
-                <textarea id="transcriptTextarea" class="w-full flex-1 min-h-[280px] sm:min-h-[340px] bg-slate-900/90 text-slate-100 p-4 rounded-xl border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-sans text-sm sm:text-base leading-relaxed resize-none custom-scrollbar placeholder-slate-600" placeholder="O texto da sua gravação ou arquivo de áudio aparecerá aqui em tempo real. Você também pode digitar ou colar anotações diretamente aqui..."></textarea>
-
-                <!-- Barra de Ações de Processamento com IA -->
-                <div class="mt-4 pt-4 border-t border-slate-800 flex flex-wrap gap-3 items-center justify-between">
-                    <div class="flex flex-wrap gap-2">
-                        <button id="btnAiFormatFull" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs sm:text-sm rounded-xl transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
-                            <i data-lucide="sparkles" class="w-4 h-4 text-indigo-200"></i>
-                            <span>Processar Transcrição Integral (Corrigir Gramática sem Cortar)</span>
-                        </button>
-                        <button id="btnAiAta" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs sm:text-sm rounded-xl transition flex items-center gap-2 border border-slate-700">
-                            <i data-lucide="file-check-2" class="w-4 h-4 text-amber-400"></i>
-                            <span>Gerar Ata Estruturada</span>
-                        </button>
-                    </div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Motivo / Assunto</label>
+                    <input type="text" id="headerSubject" placeholder="Ex: Pesquisa de Campo - Etapa 1" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
             </div>
         </div>
 
-        <!-- Seção de Resultados / Exibição de Documento Estruturado -->
-        <div id="outputSection" class="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-4">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                <div>
-                    <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
-                        <i data-lucide="file-spreadsheet" class="w-5 h-5 text-indigo-400"></i>
-                        Visualização e Exportação de Documento
-                    </h2>
-                    <p class="text-xs text-slate-400">O cabeçalho e o conteúdo abaixo serão exportados para Word ou PDF.</p>
+        <!-- Painel de Controle de Gravação -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <button id="recordBtn" onclick="toggleRecording()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm">
+                        <i data-lucide="mic" id="recordIcon" class="w-5 h-5"></i>
+                        <span id="recordText">Iniciar Gravação Contínua</span>
+                    </button>
+                    <div id="recordingStatus" class="hidden flex items-center gap-2 text-xs font-medium text-rose-600 animate-pulse">
+                        <span class="w-2.5 h-2.5 bg-rose-600 rounded-full"></span>
+                        Transcrevendo em Tempo Real...
+                    </div>
                 </div>
 
-                <!-- BOTÕES DE EXPORTAÇÃO EXCLUSIVOS (DOCX E PDF APENAS) -->
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button id="btnExportDocx" class="flex-1 sm:flex-initial px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-blue-600/20">
-                        <i data-lucide="file-text" class="w-4 h-4"></i>
-                        <span>Baixar Word (.docx)</span>
+                <!-- Modos de Idioma -->
+                <div class="flex items-center gap-2 text-xs">
+                    <label class="text-slate-500">Idioma:</label>
+                    <select id="languageSelect" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="pt-BR">Português (Brasil)</option>
+                        <option value="en-US">Inglês (EUA)</option>
+                        <option value="es-ES">Espanhol</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal de Transcrição -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 rounded-t-xl">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="align-left" class="w-4 h-4 text-indigo-600"></i>
+                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Texto Transcrito em Tempo Real (Integral)</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                    <span id="wordCount">0 palavras</span> | <span id="charCount">0 caracteres</span>
+                </div>
+            </div>
+            
+            <div class="flex-1 p-4 relative">
+                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Inicie a gravação e fale ao microfone. As palavras aparecerão aqui instantaneamente em tempo real..."></textarea>
+            </div>
+
+            <!-- Botões de Exportação Direta (100% Offline / Sem necessidade de API Key) -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl flex flex-wrap items-center justify-between gap-3">
+                <div class="text-xs text-slate-500 italic">
+                    * Os botões abaixo baixam o documento imediatamente sem solicitar chave de API.
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="exportToWord()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 font-medium transition shadow-sm">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> Baixar Word (.docx)
                     </button>
-                    <button id="btnExportPdf" class="flex-1 sm:flex-initial px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-rose-600/20">
-                        <i data-lucide="file-down" class="w-4 h-4"></i>
-                        <span>Baixar PDF (.pdf)</span>
+                    <button onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 font-medium transition shadow-sm">
+                        <i data-lucide="file-down" class="w-4 h-4"></i> Baixar PDF (.pdf)
                     </button>
                 </div>
             </div>
+        </div>
 
-            <!-- Editor / Visualizador do Conteúdo Processado -->
-            <div class="relative">
-                <div id="outputContent" contenteditable="true" class="w-full min-h-[250px] max-h-[500px] overflow-y-auto bg-slate-900/90 text-slate-100 p-6 rounded-xl border border-slate-800 font-sans text-sm leading-relaxed custom-scrollbar focus:outline-none focus:border-indigo-500">
-                    <p class="text-slate-500 italic">O documento pronto para exportação será exibido aqui. Você pode editar este texto manualmente antes de baixar em formato Word ou PDF.</p>
+        <!-- Seção Opcional de Formatação por IA Gemini -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="flex items-center justify-between cursor-pointer" onclick="toggleGeminiSection()">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-indigo-600"></i>
+                    <h3 class="text-sm font-semibold text-slate-700">Ajuste Gramatical Opcional (Requer Chave de API)</h3>
+                </div>
+                <i data-lucide="chevron-down" id="geminiChevron" class="w-4 h-4 text-slate-400 transition-transform"></i>
+            </div>
+            
+            <div id="geminiContent" class="hidden space-y-4 pt-2 border-t border-slate-100">
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Este recurso é totalmente opcional. Se desejar usar a IA para pontuar e organizar os parágrafos do texto gravado sem remover nenhuma frase, insira sua chave abaixo.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center gap-3">
+                    <input type="password" id="apiKeyInput" placeholder="Chave de API Gemini (Opcional)" class="w-full sm:flex-1 text-xs bg-slate-50 border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <button onclick="processWithGemini()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium transition shadow-sm">
+                        <i data-lucide="wand-2" class="w-4 h-4"></i> Formatar Pontuação
+                    </button>
                 </div>
             </div>
+        </div>
+
+        <!-- Área Oculta para Renderização do PDF -->
+        <div id="pdfRenderArea" class="hidden bg-white p-8 font-sans text-slate-800">
+            <div id="pdfHeader" class="border-b-2 border-indigo-700 pb-4 mb-6">
+                <h1 class="text-xl font-bold text-indigo-900 uppercase tracking-wide mb-1">Madre Bárbara Ata Fácil</h1>
+                <h2 class="text-xs text-slate-500 font-semibold uppercase mb-3">Ata / Transcrição de Entrevista</h2>
+                <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                    <div><strong>Data:</strong> <span id="pdfDate">-</span></div>
+                    <div><strong>Motivo / Assunto:</strong> <span id="pdfSubject">-</span></div>
+                    <div><strong>Entrevistador(a):</strong> <span id="pdfInterviewer">-</span></div>
+                    <div><strong>Entrevistado(a):</strong> <span id="pdfInterviewee">-</span></div>
+                </div>
+            </div>
+            <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Transcrição Integral da Conversa:</div>
+            <div id="pdfBody" class="text-sm leading-relaxed text-slate-800 whitespace-pre-wrap"></div>
         </div>
 
     </main>
 
-    <!-- Modal de Configuração de Chave API Gemini -->
-    <div id="apiKeyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="key" class="w-5 h-5 text-amber-400"></i> Chave API do Google Gemini
-                </h3>
-                <button id="btnCloseModal" class="text-slate-400 hover:text-slate-200">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <p class="text-xs text-slate-300 leading-relaxed">
-                Para efetuar a correção ortográfica inteligente ou gerar atas estruturadas com IA, insira sua chave gratuita do Google Gemini API. Ela é salva exclusivamente no armazenamento local do seu navegador (localStorage).
-            </p>
-            <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1">Sua Chave API (Gemini):</label>
-                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none">
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button id="btnSaveKey" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm rounded-xl transition">
-                    Salvar Chave
-                </button>
-            </div>
-        </div>
-    </div>
+    <footer class="bg-slate-100 border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        Madre Bárbara Ata Fácil • Execução Local Privada no Navegador
+    </footer>
 
-    <!-- Caixa de Notificação Personalizada (Substitui alert) -->
-    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-        <div class="bg-slate-800 border border-indigo-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3">
-            <i id="toastIcon" data-lucide="info" class="w-5 h-5 text-indigo-400"></i>
-            <span id="toastMessage" class="text-xs sm:text-sm font-medium">Notificação</span>
-        </div>
-    </div>
-
-    <!-- SCRIPT DA APLICAÇÃO -->
     <script>
-        // Inicialização de Ícones Lucide
         lucide.createIcons();
+        document.getElementById('headerDate').valueAsDate = new Date();
 
-        // Data Atual Padrão
-        document.getElementById('metaDate').valueAsDate = new Date();
+        let isRecording = false;
+        let recognition = null;
+        let finalTranscript = "";
+        let lastSpeechTime = Date.now();
 
-        // Estado Global do App
-        const state = {
-            isRecording: false,
-            recognition: null,
-            silenceTimer: null,
-            lastSpeechTimestamp: Date.now(),
-            recordingStartTime: null,
-            timerInterval: null,
-            fullTranscript: "",
-            geminiApiKey: localStorage.getItem("gemini_api_key") || ""
-        };
+        const textarea = document.getElementById('transcriptText');
+        textarea.addEventListener('input', updateCounts);
 
-        // Elementos DOM
-        const btnRecord = document.getElementById('btnRecord');
-        const recIcon = document.getElementById('recIcon');
-        const recStatusText = document.getElementById('recStatusText');
-        const recTimer = document.getElementById('recTimer');
-        const transcriptTextarea = document.getElementById('transcriptTextarea');
-        const wordCount = document.getElementById('wordCount');
-        const charCount = document.getElementById('charCount');
-        const outputContent = document.getElementById('outputContent');
-        const audioFileInput = document.getElementById('audioFileInput');
-        const fileNameDisplay = document.getElementById('fileNameDisplay');
-        const btnSettings = document.getElementById('btnSettings');
-        const apiKeyModal = document.getElementById('apiKeyModal');
-        const btnCloseModal = document.getElementById('btnCloseModal');
-        const btnSaveKey = document.getElementById('btnSaveKey');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const btnNuke = document.getElementById('btnNuke');
-        const btnClearText = document.getElementById('btnClearText');
-        const btnCopyText = document.getElementById('btnCopyText');
-        const btnAiFormatFull = document.getElementById('btnAiFormatFull');
-        const btnAiAta = document.getElementById('btnAiAta');
-        const btnExportDocx = document.getElementById('btnExportDocx');
-        const btnExportPdf = document.getElementById('btnExportPdf');
-
-        // Metadados do Cabeçalho
-        const metaDate = document.getElementById('metaDate');
-        const metaInterviewer = document.getElementById('metaInterviewer');
-        const metaInterviewee = document.getElementById('metaInterviewee');
-        const metaPurpose = document.getElementById('metaPurpose');
-
-        // Função de Notificação Toast
-        function showToast(message, type = "info") {
-            const toast = document.getElementById('toastNotification');
-            const toastMsg = document.getElementById('toastMessage');
-            const toastIcon = document.getElementById('toastIcon');
-
-            toastMsg.textContent = message;
-            if (type === "error") {
-                toastIcon.setAttribute('data-lucide', 'alert-circle');
-                toastIcon.className = "w-5 h-5 text-rose-400";
-            } else if (type === "success") {
-                toastIcon.setAttribute('data-lucide', 'check-circle');
-                toastIcon.className = "w-5 h-5 text-emerald-400";
-            } else {
-                toastIcon.setAttribute('data-lucide', 'info');
-                toastIcon.className = "w-5 h-5 text-indigo-400";
-            }
-            lucide.createIcons();
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3500);
-        }
-
-        // Gera o texto formatado do cabeçalho
-        function getHeaderFormattedText() {
-            const dateVal = metaDate.value ? new Date(metaDate.value).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não informada';
-            const interviewer = metaInterviewer.value.trim() || 'Não informado';
-            const interviewee = metaInterviewee.value.trim() || 'Não informado';
-            const purpose = metaPurpose.value.trim() || 'Não informado';
-
-            return `REGISTRO OFICIAL DE REUNIÃO / ENTREVISTA\n--------------------------------------------------\nData: ${dateVal}\nEntrevistador / Responsável: ${interviewer}\nEntrevistado(a) / Participante(s): ${interviewee}\nMotivo / Assunto: ${purpose}\n--------------------------------------------------\n\n`;
-        }
-
-        // Atualizador de Contagem de Palavras e Caracteres
-        function updateStats() {
-            const text = transcriptTextarea.value.trim();
-            const words = text ? text.split(/\s+/).filter(w => w.length > 0).length : 0;
+        function updateCounts() {
+            const text = textarea.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
             const chars = text.length;
-
-            wordCount.textContent = words;
-            charCount.textContent = chars;
-            state.fullTranscript = text;
-
-            // Sincroniza visualizador se não tiver sido editado manualmente
-            if (!outputContent.dataset.userEdited) {
-                outputContent.innerText = text || "O documento pronto para exportação será exibido aqui. Você pode editar este texto manualmente antes de baixar em formato Word ou PDF.";
-            }
+            document.getElementById('wordCount').innerText = `${words} palavras`;
+            document.getElementById('charCount').innerText = `${chars} caracteres`;
         }
 
-        transcriptTextarea.addEventListener('input', () => {
-            outputContent.dataset.userEdited = "true";
-            updateStats();
-        });
+        function toggleGeminiSection() {
+            const content = document.getElementById('geminiContent');
+            const chevron = document.getElementById('geminiChevron');
+            content.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
 
-        // Configuração de Reconhecimento de Voz (Web Speech API)
-        function initSpeechRecognition() {
+        function setupRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
             if (!SpeechRecognition) {
-                showToast("Seu navegador não suporta a Web Speech API. Recomenda-se o Google Chrome ou Microsoft Edge.", "error");
+                alert('Seu navegador não suporta reconhecimento de voz. Utilize o Google Chrome ou Edge.');
                 return null;
             }
 
             const rec = new SpeechRecognition();
             rec.continuous = true;
             rec.interimResults = true;
-            rec.lang = 'pt-BR';
+            rec.lang = document.getElementById('languageSelect').value;
 
             rec.onresult = (event) => {
-                let finalTranscriptChunk = '';
-                const now = Date.now();
-                const pauseDuration = (now - state.lastSpeechTimestamp) / 1000;
-                state.lastSpeechTimestamp = now;
+                let interimTranscript = '';
 
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        let textChunk = event.results[i][0].transcript.trim();
+                        const speechSegment = event.results[i][0].transcript.trim();
+                        const now = Date.now();
+                        const pauseDuration = now - lastSpeechTime;
+                        lastSpeechTime = now;
 
-                        // Algoritmo de Pontuação Automática Baseada em Pausas de Fala
-                        if (textChunk.length > 0) {
-                            if (pauseDuration > 1.8) {
-                                textChunk = '. ' + textChunk.charAt(0).toUpperCase() + textChunk.slice(1);
-                            } else if (pauseDuration > 1.0) {
-                                textChunk = ', ' + textChunk;
-                            } else {
-                                textChunk = ' ' + textChunk;
+                        let formattedSegment = speechSegment;
+                        if (pauseDuration > 2500 && finalTranscript.length > 0) {
+                            if (!finalTranscript.endsWith('. ') && !finalTranscript.endsWith('?\n')) {
+                                finalTranscript = finalTranscript.trim() + '. ';
                             }
-                            finalTranscriptChunk += textChunk;
+                            formattedSegment = formattedSegment.charAt(0).toUpperCase() + formattedSegment.slice(1);
+                        } else if (pauseDuration > 1200 && finalTranscript.length > 0) {
+                            if (!finalTranscript.endsWith(', ') && !finalTranscript.endsWith('. ')) {
+                                finalTranscript = finalTranscript.trim() + ', ';
+                            }
                         }
+
+                        finalTranscript += formattedSegment + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
                     }
                 }
 
-                if (finalTranscriptChunk) {
-                    transcriptTextarea.value += finalTranscriptChunk;
-                    updateStats();
-                    transcriptTextarea.scrollTop = transcriptTextarea.scrollHeight;
+                // Atualização do texto em tempo real (fala confirmada + fala provisória em andamento)
+                textarea.value = finalTranscript + interimTranscript;
+                updateCounts();
+                textarea.scrollTop = textarea.scrollHeight;
+            };
+
+            rec.onend = () => {
+                if (isRecording) {
+                    try {
+                        rec.start();
+                    } catch (e) {
+                        console.error('Erro ao reiniciar reconhecimento:', e);
+                    }
                 }
             };
 
             rec.onerror = (event) => {
-                console.warn("Erro no reconhecimento de voz:", event.error);
-                if (event.error === 'not-allowed') {
-                    showToast("Permissão de microfone negada.", "error");
-                    stopRecording();
-                }
-            };
-
-            rec.onend = () => {
-                // Loop Contínuo Ininterrupto (Auto-Reconnect em caso de silêncio/disconnect)
-                if (state.isRecording) {
-                    try {
-                        rec.start();
-                    } catch (e) {
-                        console.log("Reconectando gravação automaticamente...");
-                    }
-                }
+                if (event.error === 'no-speech' && isRecording) return;
+                console.warn('Status do reconhecimento:', event.error);
             };
 
             return rec;
         }
 
-        // Timer de Gravação
-        function startTimer() {
-            state.recordingStartTime = Date.now();
-            state.timerInterval = setInterval(() => {
-                const elapsedSeconds = Math.floor((Date.now() - state.recordingStartTime) / 1000);
-                const hrs = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
-                const mins = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0');
-                const secs = String(elapsedSeconds % 60).padStart(2, '0');
-                recTimer.textContent = `${hrs}:${mins}:${secs}`;
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(state.timerInterval);
-            recTimer.textContent = "00:00:00";
-        }
-
-        // Iniciar e Parar Gravação
         function toggleRecording() {
-            if (!state.isRecording) {
-                if (!state.recognition) {
-                    state.recognition = initSpeechRecognition();
-                }
-                if (!state.recognition) return;
-
-                try {
-                    state.recognition.start();
-                    state.isRecording = true;
-                    btnRecord.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
-                    btnRecord.classList.add('bg-rose-600', 'hover:bg-rose-500', 'recording-pulse');
-                    recIcon.setAttribute('data-lucide', 'square');
-                    recStatusText.textContent = "Gravando ao Vivo...";
-                    recStatusText.classList.add('text-rose-400');
-                    lucide.createIcons();
-                    startTimer();
-                    showToast("Gravação iniciada. Fale livremente.", "success");
-                } catch (e) {
-                    showToast("Não foi possível iniciar a gravação. Verifique as permissões do microfone.", "error");
-                }
+            if (!isRecording) {
+                startRecording();
             } else {
                 stopRecording();
             }
         }
 
+        function startRecording() {
+            finalTranscript = textarea.value;
+            recognition = setupRecognition();
+            if (!recognition) return;
+
+            isRecording = true;
+            lastSpeechTime = Date.now();
+            recognition.start();
+
+            document.getElementById('recordBtn').classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            document.getElementById('recordBtn').classList.add('bg-rose-600', 'hover:bg-rose-700');
+            document.getElementById('recordText').innerText = 'Parar Gravação';
+            document.getElementById('recordIcon').setAttribute('data-lucide', 'square');
+            document.getElementById('recordingStatus').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
         function stopRecording() {
-            if (state.isRecording) {
-                state.isRecording = false;
-                if (state.recognition) {
-                    state.recognition.stop();
-                }
-                btnRecord.classList.remove('bg-rose-600', 'hover:bg-rose-500', 'recording-pulse');
-                btnRecord.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
-                recIcon.setAttribute('data-lucide', 'mic');
-                recStatusText.textContent = "Pronto para Gravar";
-                recStatusText.classList.remove('text-rose-400');
-                lucide.createIcons();
-                stopTimer();
-                showToast("Gravação pausada.", "info");
+            isRecording = false;
+            if (recognition) {
+                recognition.stop();
+            }
+
+            document.getElementById('recordBtn').classList.remove('bg-rose-600', 'hover:bg-rose-700');
+            document.getElementById('recordBtn').classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            document.getElementById('recordText').innerText = 'Iniciar Gravação Contínua';
+            document.getElementById('recordIcon').setAttribute('data-lucide', 'mic');
+            document.getElementById('recordingStatus').classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        function wipeAllData() {
+            if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
+                if (isRecording) stopRecording();
+                finalTranscript = "";
+                textarea.value = "";
+                document.getElementById('headerInterviewer').value = "";
+                document.getElementById('headerInterviewee').value = "";
+                document.getElementById('headerSubject').value = "";
+                document.getElementById('headerDate').valueAsDate = new Date();
+                updateCounts();
             }
         }
 
-        btnRecord.addEventListener('click', toggleRecording);
-
-        // Processamento de Upload de Arquivo de Áudio Local
-        audioFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            fileNameDisplay.textContent = file.name;
-            showToast(`Arquivo "${file.name}" carregado. Iniciando transcrição por áudio...`, "info");
-
-            const audio = new Audio(URL.createObjectURL(file));
-            
-            if (!state.recognition) {
-                state.recognition = initSpeechRecognition();
-            }
-
-            if (state.recognition) {
-                audio.play();
-                if (!state.isRecording) {
-                    toggleRecording();
-                }
-
-                audio.onended = () => {
-                    stopRecording();
-                    showToast("Transcrição do arquivo de áudio concluída!", "success");
-                };
-            }
-        });
-
-        // Limpeza de Texto e Memória
-        btnClearText.addEventListener('click', () => {
-            transcriptTextarea.value = "";
-            outputContent.innerHTML = '<p class="text-slate-500 italic">O documento pronto para exportação será exibido aqui. Você pode editar este texto manualmente antes de baixar em formato Word ou PDF.</p>';
-            delete outputContent.dataset.userEdited;
-            updateStats();
-            showToast("Caixa de texto limpa.", "info");
-        });
-
-        // Copiar Texto para Área de Transferência
-        btnCopyText.addEventListener('click', () => {
-            const textToCopy = transcriptTextarea.value;
-            if (!textToCopy) {
-                showToast("Não há texto para copiar.", "error");
+        function exportToWord() {
+            const textContent = textarea.value.trim();
+            if (!textContent) {
+                alert('Não há texto para exportar!');
                 return;
             }
 
-            try {
-                transcriptTextarea.select();
-                document.execCommand('copy');
-                showToast("Texto integral copiado para a área de transferência!", "success");
-            } catch (err) {
-                showToast("Erro ao copiar o texto.", "error");
-            }
-        });
+            const dateVal = document.getElementById('headerDate').value || 'Não informada';
+            const interviewerVal = document.getElementById('headerInterviewer').value || 'Não informado';
+            const intervieweeVal = document.getElementById('headerInterviewee').value || 'Não informado';
+            const subjectVal = document.getElementById('headerSubject').value || 'Não informado';
 
-        // Destruição Completa de Dados da Memória RAM (Privacidade Total)
-        btnNuke.addEventListener('click', () => {
-            stopRecording();
-            transcriptTextarea.value = "";
-            outputContent.innerHTML = '<p class="text-slate-500 italic">O documento pronto para exportação será exibido aqui.</p>';
-            metaInterviewer.value = "";
-            metaInterviewee.value = "";
-            metaPurpose.value = "";
-            metaDate.valueAsDate = new Date();
-            state.fullTranscript = "";
-            fileNameDisplay.textContent = "Selecionar Arquivo de Áudio";
-            audioFileInput.value = "";
-            updateStats();
-            showToast("Todos os dados foram completamente destruídos da memória!", "success");
-        });
-
-        // Modal de Configuração de Chave API
-        btnSettings.addEventListener('click', () => {
-            apiKeyInput.value = state.geminiApiKey;
-            apiKeyModal.classList.remove('hidden');
-        });
-
-        btnCloseModal.addEventListener('click', () => {
-            apiKeyModal.classList.add('hidden');
-        });
-
-        btnSaveKey.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            state.geminiApiKey = key;
-            localStorage.setItem("gemini_api_key", key);
-            apiKeyModal.classList.add('hidden');
-            showToast("Chave API salva com sucesso!", "success");
-        });
-
-        // Chamada à API Gemini
-        async function callGeminiApi(promptText) {
-            if (!state.geminiApiKey) {
-                apiKeyModal.classList.remove('hidden');
-                showToast("Por favor, informe sua chave API do Google Gemini.", "error");
-                return null;
-            }
-
-            showToast("Processando com Inteligência Artificial...", "info");
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.geminiApiKey}`;
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }]
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erro na API Gemini (${response.status})`);
-                }
-
-                const data = await response.json();
-                return data.candidates[0].content.parts[0].text;
-            } catch (error) {
-                console.error("Erro na chamada da API:", error);
-                showToast("Falha ao comunicar com a API do Gemini. Verifique sua chave.", "error");
-                return null;
-            }
-        }
-
-        // AÇÃO 1: Processar Transcrição Integral (100% Fiel / Sem Cortar Nada)
-        btnAiFormatFull.addEventListener('click', async () => {
-            const currentText = transcriptTextarea.value.trim();
-            if (!currentText) {
-                showToast("A caixa de texto está vazia. Grave ou digite algo primeiro.", "error");
-                return;
-            }
-
-            const prompt = `Você é um transcritor e revisor profissional de áudio e entrevistas.
-SEU OBJETIVO PRINCIPAL: Corrigir pontuação, ortografia, concordância e organizar o texto abaixo em parágrafos coerentes.
-
-REGRA ABSOLUTA E MANDATÓRIA:
-- NUNCA RESUMA, NUNCA ENCURTE, NUNCA SINTETIZE E NUNCA OMITA NENHUMA FRASE OU INFORMAÇÃO.
-- CONSERVE 100% DAS FALAS, IDEIAS E DETALHES PRESENTES NO TEXTO ORIGINAL.
-- Apenas ajuste a pontuação, remova repetições gaguejadas excessivas (como "é... é... é...") e formate o texto de forma limpa e agradável para leitura em forma de transcrição fiel.
-
-Texto original para revisão:
-"""
-${currentText}
-"""`;
-
-            const result = await callGeminiApi(prompt);
-            if (result) {
-                outputContent.innerHTML = `<div class="prose prose-invert max-w-none text-slate-100 whitespace-pre-line">${result}</div>`;
-                outputContent.dataset.userEdited = "true";
-                showToast("Transcrição Integral revisada com sucesso!", "success");
-            }
-        });
-
-        // AÇÃO 2: Gerar Ata Estruturada (Formatada)
-        btnAiAta.addEventListener('click', async () => {
-            const currentText = transcriptTextarea.value.trim();
-            if (!currentText) {
-                showToast("A caixa de texto está vazia. Grave ou digite algo primeiro.", "error");
-                return;
-            }
-
-            const prompt = `Você é um especialista na redação de Atas Oficiais e Documentos Corporativos.
-Com base no texto abaixo, elabore uma Ata Reunião / Entrevista formal, bem estruturada, contendo:
-1. TÍTULO E OBJETIVO DA REUNIÃO/ENTREVISTA
-2. PAUTAS E TÓPICOS DISCUTIDOS
-3. DECISÕES E ENCAMINHAMENTOS
-4. OBSERVAÇÕES RELEVANTES
-
-Texto base:
-"""
-${currentText}
-"""`;
-
-            const result = await callGeminiApi(prompt);
-            if (result) {
-                outputContent.innerHTML = `<div class="prose prose-invert max-w-none text-slate-100 whitespace-pre-line">${result}</div>`;
-                outputContent.dataset.userEdited = "true";
-                showToast("Ata Estruturada gerada com sucesso!", "success");
-            }
-        });
-
-        // EXPORTAÇÃO EXCLUSIVA PARA WORD (.DOCX) - Com Cabeçalho + Texto Íntegro
-        btnExportDocx.addEventListener('click', () => {
-            const textToExport = outputContent.innerText || transcriptTextarea.value;
-
-            if (!textToExport || textToExport.trim().length === 0) {
-                showToast("Não há conteúdo para exportar.", "error");
-                return;
-            }
-
-            try {
-                const dateVal = metaDate.value ? new Date(metaDate.value).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não informada';
-                const interviewer = metaInterviewer.value.trim() || 'Não informado';
-                const interviewee = metaInterviewee.value.trim() || 'Não informado';
-                const purpose = metaPurpose.value.trim() || 'Não informado';
-
-                // Tabela de Cabeçalho no Word
-                const headerTable = new docx.Table({
-                    width: { size: 100, type: docx.WidthType.PERCENTAGE },
-                    rows: [
-                        new docx.TableRow({
+            const doc = new docx.Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        new docx.Paragraph({
                             children: [
-                                new docx.TableCell({
-                                    children: [
-                                        new docx.Paragraph({
-                                            children: [
-                                                new docx.TextRun({ text: "REGISTRO OFICIAL DE REUNIÃO / ENTREVISTA", bold: true, size: 24, font: "Calibri", color: "1E293B" })
-                                            ],
-                                            alignment: docx.AlignmentType.CENTER,
-                                            spacing: { after: 120 }
-                                        }),
-                                        new docx.Paragraph({
-                                            children: [
-                                                new docx.TextRun({ text: "Data: ", bold: true, size: 20, font: "Calibri" }),
-                                                new docx.TextRun({ text: dateVal, size: 20, font: "Calibri" }),
-                                                new docx.TextRun({ text: "    |    Entrevistador: ", bold: true, size: 20, font: "Calibri" }),
-                                                new docx.TextRun({ text: interviewer, size: 20, font: "Calibri" })
-                                            ],
-                                            spacing: { after: 80 }
-                                        }),
-                                        new docx.Paragraph({
-                                            children: [
-                                                new docx.TextRun({ text: "Entrevistado(a): ", bold: true, size: 20, font: "Calibri" }),
-                                                new docx.TextRun({ text: interviewee, size: 20, font: "Calibri" })
-                                            ],
-                                            spacing: { after: 80 }
-                                        }),
-                                        new docx.Paragraph({
-                                            children: [
-                                                new docx.TextRun({ text: "Motivo / Assunto: ", bold: true, size: 20, font: "Calibri" }),
-                                                new docx.TextRun({ text: purpose, size: 20, font: "Calibri" })
-                                            ],
-                                            spacing: { after: 80 }
-                                        })
-                                    ],
-                                    padding: { top: 140, bottom: 140, left: 140, right: 140 }
-                                })
+                                new docx.TextRun({ text: "MADRE BÁRBARA ATA FÁCIL", bold: true, size: 28, color: "1E1B4B" })
+                            ],
+                            spaceAfter: 150
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Ata / Transcrição de Entrevista", italic: true, size: 20, color: "475569" })
+                            ],
+                            spaceAfter: 300
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Data da Reunião: ", bold: true }),
+                                new docx.TextRun(dateVal)
                             ]
-                        })
-                    ]
-                });
-
-                // Parágrafos do Texto Principal
-                const paragraphs = textToExport.split('\n').map(p => {
-                    return new docx.Paragraph({
-                        children: [
-                            new docx.TextRun({
-                                text: p,
-                                size: 22, // 11pt
-                                font: "Calibri"
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
+                                new docx.TextRun(interviewerVal)
+                            ]
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
+                                new docx.TextRun(intervieweeVal)
+                            ]
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
+                                new docx.TextRun(subjectVal)
+                            ],
+                            spaceAfter: 400
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
+                            ],
+                            spaceAfter: 200
+                        }),
+                        ...textContent.split('\n').map(paragraph => 
+                            new docx.Paragraph({
+                                children: [new docx.TextRun({ text: paragraph, size: 22 })],
+                                spaceAfter: 150
                             })
-                        ],
-                        spacing: { after: 160 }
-                    });
-                });
+                        )
+                    ]
+                }]
+            });
 
-                const doc = new docx.Document({
-                    sections: [{
-                        properties: {},
-                        children: [
-                            headerTable,
-                            new docx.Paragraph({ children: [], spacing: { after: 300 } }),
-                            ...paragraphs
-                        ]
-                    }]
-                });
+            docx.Packer.toBlob(doc).then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Ata_MadreBarbara_${dateVal}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
 
-                docx.Packer.toBlob(doc).then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Ata_Transcricao_${new Date().toISOString().slice(0,10)}.docx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    showToast("Arquivo Word (.docx) baixado com sucesso!", "success");
-                });
-
-            } catch (err) {
-                console.error("Erro ao gerar Word:", err);
-                showToast("Ocorreu um erro ao gerar o arquivo .docx.", "error");
-            }
-        });
-
-        // EXPORTAÇÃO EXCLUSIVA PARA PDF (.PDF) - Com Cabeçalho + Texto Íntegro
-        btnExportPdf.addEventListener('click', () => {
-            const textToExport = outputContent.innerText || transcriptTextarea.value;
-
-            if (!textToExport || textToExport.trim().length === 0) {
-                showToast("Não há conteúdo para exportar.", "error");
+        function exportToPDF() {
+            const textContent = textarea.value.trim();
+            if (!textContent) {
+                alert('Não há texto para exportar!');
                 return;
             }
 
-            const dateVal = metaDate.value ? new Date(metaDate.value).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não informada';
-            const interviewer = metaInterviewer.value.trim() || 'Não informado';
-            const interviewee = metaInterviewee.value.trim() || 'Não informado';
-            const purpose = metaPurpose.value.trim() || 'Não informado';
+            document.getElementById('pdfDate').innerText = document.getElementById('headerDate').value || 'Não informada';
+            document.getElementById('pdfInterviewer').innerText = document.getElementById('headerInterviewer').value || 'Não informado';
+            document.getElementById('pdfInterviewee').innerText = document.getElementById('headerInterviewee').value || 'Não informado';
+            document.getElementById('pdfSubject').innerText = document.getElementById('headerSubject').value || 'Não informado';
+            document.getElementById('pdfBody').innerText = textContent;
 
-            // Elemento temporário para estilização limpa na exportação em PDF
-            const container = document.createElement('div');
-            container.style.padding = '30px';
-            container.style.fontFamily = 'Arial, sans-serif';
-            container.style.color = '#0f172a';
-            container.style.lineHeight = '1.6';
-            container.style.fontSize = '11pt';
-
-            // Bloco de Cabeçalho PDF
-            const headerBox = document.createElement('div');
-            headerBox.style.border = '1px solid #cbd5e1';
-            headerBox.style.borderRadius = '8px';
-            headerBox.style.backgroundColor = '#f8fafc';
-            headerBox.style.padding = '16px';
-            headerBox.style.marginBottom = '24px';
-
-            headerBox.innerHTML = `
-                <h2 style="margin: 0 0 12px 0; font-size: 14pt; color: #1e293b; text-align: center; font-weight: bold; text-transform: uppercase;">Registro Oficial de Reunião / Entrevista</h2>
-                <div style="font-size: 10pt; color: #334155;">
-                    <p style="margin: 4px 0;"><strong>Data:</strong> ${dateVal}</p>
-                    <p style="margin: 4px 0;"><strong>Entrevistador / Responsável:</strong> ${interviewer}</p>
-                    <p style="margin: 4px 0;"><strong>Entrevistado(a) / Participante(s):</strong> ${interviewee}</p>
-                    <p style="margin: 4px 0;"><strong>Motivo / Assunto:</strong> ${purpose}</p>
-                </div>
-            `;
-            container.appendChild(headerBox);
-
-            // Conteúdo Principal
-            const content = document.createElement('div');
-            content.style.whiteSpace = 'pre-wrap';
-            content.textContent = textToExport;
-            container.appendChild(content);
+            const renderArea = document.getElementById('pdfRenderArea');
+            renderArea.classList.remove('hidden');
 
             const opt = {
                 margin:       15,
-                filename:     `Ata_Transcricao_${new Date().toISOString().slice(0,10)}.pdf`,
+                filename:     `Ata_MadreBarbara_${document.getElementById('headerDate').value || 'data'}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(container).save().then(() => {
-                showToast("Arquivo PDF baixado com sucesso!", "success");
-            }).catch(err => {
-                console.error("Erro ao gerar PDF:", err);
-                showToast("Erro ao gerar o arquivo PDF.", "error");
+            html2pdf().set(opt).from(renderArea).save().then(() => {
+                renderArea.classList.add('hidden');
             });
-        });
+        }
 
-        // Inicialização
-        updateStats();
+        async function processWithGemini() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const textContent = textarea.value.trim();
+
+            if (!apiKey) {
+                alert('A chave de API só é necessária se quiser usar esta função opcional de formatar pontuação.');
+                return;
+            }
+
+            if (!textContent) {
+                alert('Não há texto para formatar!');
+                return;
+            }
+
+            const prompt = `Você é um assistente especializado em formatação textual. Organize a pontuação e os parágrafos do texto transcrito a seguir. 
+REGRA OBRIGATÓRIA: MANTENHA 100% DO CONTEÚDO ORIGINAL. NÃO RESUMA E NÃO CORTE NENHUMA FRASE.
+
+Texto:
+${textContent}`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    textarea.value = data.candidates[0].content.parts[0].text;
+                    finalTranscript = textarea.value;
+                    updateCounts();
+                    alert('Pontuação e parágrafos ajustados pela IA sem alterar o conteúdo!');
+                } else {
+                    alert('Erro no processamento da IA. Verifique sua chave de API.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro de conexão com a API.');
+            }
+        }
     </script>
 </body>
 </html>
