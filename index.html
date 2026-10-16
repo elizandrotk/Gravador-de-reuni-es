@@ -58,7 +58,7 @@
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
             <i data-lucide="lock" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado localmente no seu navegador. A transcrição gerada preserva 100% do que foi falado sem intermediários ou APIs externas.
+                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado localmente no seu navegador. A transcrição gerada preserva 100% do conteúdo falado.
             </div>
         </div>
 
@@ -104,13 +104,15 @@
                 <!-- Modos de Idioma -->
                 <div class="flex items-center gap-2 text-xs">
                     <label class="text-slate-500">Idioma:</label>
-                    <select id="languageSelect" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <select id="languageSelect" onchange="changeLanguage()" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         <option value="pt-BR">Português (Brasil)</option>
                         <option value="en-US">Inglês (EUA)</option>
                         <option value="es-ES">Espanhol</option>
                     </select>
                 </div>
             </div>
+            <!-- Alerta de Erro de Microfone -->
+            <div id="micErrorMsg" class="hidden mt-3 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg"></div>
         </div>
 
         <!-- Área Principal de Transcrição -->
@@ -126,13 +128,13 @@
             </div>
             
             <div class="flex-1 p-4 relative">
-                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Inicie a gravação e fale ao microfone. As palavras aparecerão aqui instantaneamente em tempo real..."></textarea>
+                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Inicie a gravação e fale ao microfone. O texto transcrito aparecerá aqui instantaneamente..."></textarea>
             </div>
 
             <!-- Botões de Exportação Direta -->
             <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl flex flex-wrap items-center justify-between gap-3">
                 <div class="text-xs text-slate-500 italic">
-                    * Os documentos exportados baixam 100% do texto presente na caixa acima.
+                    * Baixe instantaneamente o documento contendo o cabeçalho e o texto integral.
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="exportToWord()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 font-medium transition shadow-sm">
@@ -173,15 +175,10 @@
 
         let isRecording = false;
         let recognition = null;
-        let confirmedText = "";
-        let audioStream = null;
-        let audioContext = null;
+        let baseTranscript = "";
 
         const textarea = document.getElementById('transcriptText');
-        textarea.addEventListener('input', () => {
-            confirmedText = textarea.value;
-            updateCounts();
-        });
+        textarea.addEventListener('input', updateCounts);
 
         function updateCounts() {
             const text = textarea.value.trim();
@@ -191,39 +188,10 @@
             document.getElementById('charCount').innerText = `${chars} caracteres`;
         }
 
-        // Mantém o hardware do microfone continuamente 'quente' na memória do sistema
-        async function keepMicrophoneWarm() {
-            try {
-                if (!audioStream) {
-                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const source = audioContext.createMediaStreamSource(audioStream);
-                    // Conecta a um nó nulo para manter o hardware ativo sem dar microfonia
-                    const silenceNode = audioContext.createGain();
-                    silenceNode.gain.value = 0;
-                    source.connect(silenceNode);
-                    silenceNode.connect(audioContext.destination);
-                }
-            } catch (e) {
-                console.warn("Não foi possível pré-aquecer o microfone:", e);
-            }
-        }
-
-        function stopMicrophoneWarm() {
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
-                audioStream = null;
-            }
-            if (audioContext) {
-                audioContext.close();
-                audioContext = null;
-            }
-        }
-
-        function setupRecognition() {
+        function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                alert('Seu navegador não suporta reconhecimento de voz. Utilize o Google Chrome ou Edge.');
+                showError("Seu navegador não suporta a API de reconhecimento de fala. Por favor, utilize o Google Chrome ou Microsoft Edge no computador/Chromebook.");
                 return null;
             }
 
@@ -232,10 +200,274 @@
             rec.interimResults = true;
             rec.lang = document.getElementById('languageSelect').value;
 
+            rec.onstart = () => {
+                hideError();
+                isRecording = true;
+                updateRecordingUI(true);
+            };
+
             rec.onresult = (event) => {
-                let interimTranscript = '';
-                let newFinalSegment = '';
+                let sessionFinal = "";
+                let sessionInterim = "";
 
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        newFinalSegment += event.results[i][0].transcript + ' ';
+                        sessionFinal += event.results[i][0].transcript + " ";
+                    } else {
+                        sessionInterim += event.results[i][0].transcript;
+                    }
+                }
+
+                if (sessionFinal) {
+                    baseTranscript += sessionFinal;
+                }
+
+                textarea.value = baseTranscript + sessionInterim;
+                updateCounts();
+                textarea.scrollTop = textarea.scrollHeight;
+            };
+
+            rec.onend = () => {
+                // Se ainda deveria estar gravando, tenta reiniciar automaticamente
+                if (isRecording) {
+                    baseTranscript = textarea.value;
+                    try {
+                        rec.start();
+                    } catch (e) {
+                        console.warn('Reconexão do microfone:', e);
+                    }
+                } else {
+                    updateRecordingUI(false);
+                }
+            };
+
+            rec.onerror = (event) => {
+                if (event.error === 'no-speech') return;
+                console.error("Erro no microfone:", event.error);
+                if (event.error === 'not-allowed') {
+                    showError("Acesso ao microfone foi bloqueado pelo navegador. Por favor, clique no ícone de cadeado ao lado do endereço do site e permita o acesso ao microfone.");
+                    stopRecording();
+                } else if (event.error === 'network') {
+                    showError("Erro de conexão com o serviço de reconhecimento de voz. Verifique sua conexão com a internet.");
+                }
+            };
+
+            return rec;
+        }
+
+        // Inicializa a instância na carga da página
+        recognition = initSpeechRecognition();
+
+        function changeLanguage() {
+            if (recognition) {
+                recognition.lang = document.getElementById('languageSelect').value;
+            }
+        }
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        function startRecording() {
+            hideError();
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+            }
+            if (!recognition) return;
+
+            baseTranscript = textarea.value;
+            if (baseTranscript.length > 0 && !baseTranscript.endsWith(' ') && !baseTranscript.endsWith('\n')) {
+                baseTranscript += ' ';
+            }
+
+            try {
+                isRecording = true;
+                recognition.start();
+            } catch (e) {
+                console.warn("Iniciando gravação:", e);
+            }
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            if (recognition) {
+                try {
+                    recognition.stop();
+                } catch (e) {
+                    console.warn("Parando gravação:", e);
+                }
+            }
+            baseTranscript = textarea.value;
+            updateRecordingUI(false);
+        }
+
+        function updateRecordingUI(active) {
+            const recordBtn = document.getElementById('recordBtn');
+            const recordText = document.getElementById('recordText');
+            const recordIcon = document.getElementById('recordIcon');
+            const recordingStatus = document.getElementById('recordingStatus');
+
+            if (active) {
+                recordBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                recordBtn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+                recordText.innerText = 'Parar Gravação';
+                recordIcon.setAttribute('data-lucide', 'square');
+                recordingStatus.classList.remove('hidden');
+            } else {
+                recordBtn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+                recordBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                recordText.innerText = 'Iniciar Gravação Contínua';
+                recordIcon.setAttribute('data-lucide', 'mic');
+                recordingStatus.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function showError(msg) {
+            const errDiv = document.getElementById('micErrorMsg');
+            errDiv.innerText = msg;
+            errDiv.classList.remove('hidden');
+        }
+
+        function hideError() {
+            const errDiv = document.getElementById('micErrorMsg');
+            errDiv.classList.add('hidden');
+        }
+
+        function wipeAllData() {
+            if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
+                if (isRecording) stopRecording();
+                baseTranscript = "";
+                textarea.value = "";
+                document.getElementById('headerInterviewer').value = "";
+                document.getElementById('headerInterviewee').value = "";
+                document.getElementById('headerSubject').value = "";
+                document.getElementById('headerDate').valueAsDate = new Date();
+                updateCounts();
+                hideError();
+            }
+        }
+
+        function exportToWord() {
+            const textContent = textarea.value.trim();
+            if (!textContent) {
+                alert('Não há texto para exportar! Por favor, grave ou digite algum conteúdo antes de exportar.');
+                return;
+            }
+
+            const dateVal = document.getElementById('headerDate').value || 'Não informada';
+            const interviewerVal = document.getElementById('headerInterviewer').value || 'Não informado';
+            const intervieweeVal = document.getElementById('headerInterviewee').value || 'Não informado';
+            const subjectVal = document.getElementById('headerSubject').value || 'Não informado';
+
+            const doc = new docx.Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "MADRE BÁRBARA ATA FÁCIL", bold: true, size: 28, color: "1E1B4B" })
+                            ],
+                            spaceAfter: 150
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Ata / Transcrição de Entrevista", italic: true, size: 20, color: "475569" })
+                            ],
+                            spaceAfter: 300
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Data da Reunião: ", bold: true }),
+                                new docx.TextRun(dateVal)
+                            ]
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
+                                new docx.TextRun(interviewerVal)
+                            ]
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
+                                new docx.TextRun(intervieweeVal)
+                            ]
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
+                                new docx.TextRun(subjectVal)
+                            ],
+                            spaceAfter: 400
+                        }),
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
+                            ],
+                            spaceAfter: 200
+                        }),
+                        ...textContent.split('\n').map(paragraph => 
+                            new docx.Paragraph({
+                                children: [new docx.TextRun({ text: paragraph, size: 22 })],
+                                spaceAfter: 150
+                            })
+                        )
+                    ]
+                }]
+            });
+
+            docx.Packer.toBlob(doc).then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Ata_MadreBarbara_${dateVal}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }).catch(err => {
+                console.error("Erro Word:", err);
+                alert("Erro ao gerar o arquivo Word.");
+            });
+        }
+
+        function exportToPDF() {
+            const textContent = textarea.value.trim();
+            if (!textContent) {
+                alert('Não há texto para exportar! Por favor, grave ou digite algum conteúdo antes de exportar.');
+                return;
+            }
+
+            document.getElementById('pdfDate').innerText = document.getElementById('headerDate').value || 'Não informada';
+            document.getElementById('pdfInterviewer').innerText = document.getElementById('headerInterviewer').value || 'Não informado';
+            document.getElementById('pdfInterviewee').innerText = document.getElementById('headerInterviewee').value || 'Não informado';
+            document.getElementById('pdfSubject').innerText = document.getElementById('headerSubject').value || 'Não informado';
+            document.getElementById('pdfBody').innerText = textContent;
+
+            const renderArea = document.getElementById('pdfRenderArea');
+            renderArea.classList.remove('hidden');
+
+            const opt = {
+                margin:       15,
+                filename:     `Ata_MadreBarbara_${document.getElementById('headerDate').value || 'data'}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(renderArea).save().then(() => {
+                renderArea.classList.add('hidden');
+            }).catch(err => {
+                console.error("Erro PDF:", err);
+                renderArea.classList.add('hidden');
+                alert("Erro ao gerar o PDF.");
+            });
+        }
+    </script>
+</body>
+</html>
