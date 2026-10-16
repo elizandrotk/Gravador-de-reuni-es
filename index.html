@@ -58,7 +58,7 @@
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
             <i data-lucide="lock" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado localmente na memória RAM do seu navegador. A transcrição gerada preserva 100% do que foi falado sem intermediários ou APIs externas.
+                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado localmente no seu navegador. A transcrição gerada preserva 100% do que foi falado sem intermediários ou APIs externas.
             </div>
         </div>
 
@@ -132,7 +132,7 @@
             <!-- Botões de Exportação Direta -->
             <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl flex flex-wrap items-center justify-between gap-3">
                 <div class="text-xs text-slate-500 italic">
-                    * Clique em um dos botões ao lado para baixar instantaneamente o documento com o cabeçalho e a transcrição.
+                    * Os documentos exportados baixam 100% do texto presente na caixa acima.
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="exportToWord()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 font-medium transition shadow-sm">
@@ -173,11 +173,15 @@
 
         let isRecording = false;
         let recognition = null;
-        let finalTranscript = "";
-        let lastSpeechTime = Date.now();
+        let confirmedText = "";
+        let audioStream = null;
+        let audioContext = null;
 
         const textarea = document.getElementById('transcriptText');
-        textarea.addEventListener('input', updateCounts);
+        textarea.addEventListener('input', () => {
+            confirmedText = textarea.value;
+            updateCounts();
+        });
 
         function updateCounts() {
             const text = textarea.value.trim();
@@ -185,6 +189,35 @@
             const chars = text.length;
             document.getElementById('wordCount').innerText = `${words} palavras`;
             document.getElementById('charCount').innerText = `${chars} caracteres`;
+        }
+
+        // Mantém o hardware do microfone continuamente 'quente' na memória do sistema
+        async function keepMicrophoneWarm() {
+            try {
+                if (!audioStream) {
+                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaStreamSource(audioStream);
+                    // Conecta a um nó nulo para manter o hardware ativo sem dar microfonia
+                    const silenceNode = audioContext.createGain();
+                    silenceNode.gain.value = 0;
+                    source.connect(silenceNode);
+                    silenceNode.connect(audioContext.destination);
+                }
+            } catch (e) {
+                console.warn("Não foi possível pré-aquecer o microfone:", e);
+            }
+        }
+
+        function stopMicrophoneWarm() {
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
         }
 
         function setupRecognition() {
@@ -201,199 +234,8 @@
 
             rec.onresult = (event) => {
                 let interimTranscript = '';
+                let newFinalSegment = '';
 
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        const speechSegment = event.results[i][0].transcript.trim();
-                        const now = Date.now();
-                        const pauseDuration = now - lastSpeechTime;
-                        lastSpeechTime = now;
-
-                        let formattedSegment = speechSegment;
-                        if (pauseDuration > 2500 && finalTranscript.length > 0) {
-                            if (!finalTranscript.endsWith('. ') && !finalTranscript.endsWith('?\n')) {
-                                finalTranscript = finalTranscript.trim() + '. ';
-                            }
-                            formattedSegment = formattedSegment.charAt(0).toUpperCase() + formattedSegment.slice(1);
-                        } else if (pauseDuration > 1200 && finalTranscript.length > 0) {
-                            if (!finalTranscript.endsWith(', ') && !finalTranscript.endsWith('. ')) {
-                                finalTranscript = finalTranscript.trim() + ', ';
-                            }
-                        }
-
-                        finalTranscript += formattedSegment + ' ';
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-
-                textarea.value = finalTranscript + interimTranscript;
-                updateCounts();
-                textarea.scrollTop = textarea.scrollHeight;
-            };
-
-            rec.onend = () => {
-                if (isRecording) {
-                    try {
-                        rec.start();
-                    } catch (e) {
-                        console.error('Erro ao reiniciar reconhecimento:', e);
-                    }
-                }
-            };
-
-            rec.onerror = (event) => {
-                if (event.error === 'no-speech' && isRecording) return;
-                console.warn('Status do reconhecimento:', event.error);
-            };
-
-            return rec;
-        }
-
-        function toggleRecording() {
-            if (!isRecording) {
-                startRecording();
-            } else {
-                stopRecording();
-            }
-        }
-
-        function startRecording() {
-            finalTranscript = textarea.value;
-            recognition = setupRecognition();
-            if (!recognition) return;
-
-            isRecording = true;
-            lastSpeechTime = Date.now();
-            recognition.start();
-
-            document.getElementById('recordBtn').classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-            document.getElementById('recordBtn').classList.add('bg-rose-600', 'hover:bg-rose-700');
-            document.getElementById('recordText').innerText = 'Parar Gravação';
-            document.getElementById('recordIcon').setAttribute('data-lucide', 'square');
-            document.getElementById('recordingStatus').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function stopRecording() {
-            isRecording = false;
-            if (recognition) {
-                recognition.stop();
-            }
-
-            document.getElementById('recordBtn').classList.remove('bg-rose-600', 'hover:bg-rose-700');
-            document.getElementById('recordBtn').classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-            document.getElementById('recordText').innerText = 'Iniciar Gravação Contínua';
-            document.getElementById('recordIcon').setAttribute('data-lucide', 'mic');
-            document.getElementById('recordingStatus').classList.add('hidden');
-            lucide.createIcons();
-        }
-
-        function wipeAllData() {
-            if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
-                if (isRecording) stopRecording();
-                finalTranscript = "";
-                textarea.value = "";
-                document.getElementById('headerInterviewer').value = "";
-                document.getElementById('headerInterviewee').value = "";
-                document.getElementById('headerSubject').value = "";
-                document.getElementById('headerDate').valueAsDate = new Date();
-                updateCounts();
-            }
-        }
-
-        function exportToWord() {
-            const textContent = textarea.value.trim();
-            if (!textContent) {
-                alert('Não há texto para exportar!');
-                return;
-            }
-
-            const dateVal = document.getElementById('headerDate').value || 'Não informada';
-            const interviewerVal = document.getElementById('headerInterviewer').value || 'Não informado';
-            const intervieweeVal = document.getElementById('headerInterviewee').value || 'Não informado';
-            const subjectVal = document.getElementById('headerSubject').value || 'Não informado';
-
-            const doc = new docx.Document({
-                sections: [{
-                    properties: {},
-                    children: [
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "MADRE BÁRBARA ATA FÁCIL", bold: true, size: 28, color: "1E1B4B" })
-                            ],
-                            spaceAfter: 150
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Ata / Transcrição de Entrevista", italic: true, size: 20, color: "475569" })
-                            ],
-                            spaceAfter: 300
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Data da Reunião: ", bold: true }),
-                                new docx.TextRun(dateVal)
-                            ]
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
-                                new docx.TextRun(interviewerVal)
-                            ]
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
-                                new docx.TextRun(intervieweeVal)
-                            ]
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
-                                new docx.TextRun(subjectVal)
-                            ],
-                            spaceAfter: 400
-                        }),
-                        new docx.Paragraph({
-                            children: [
-                                new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
-                            ],
-                            spaceAfter: 200
-                        }),
-                        ...textContent.split('\n').map(paragraph => 
-                            new docx.Paragraph({
-                                children: [new docx.TextRun({ text: paragraph, size: 22 })],
-                                spaceAfter: 150
-                            })
-                        )
-                    ]
-                }]
-            });
-
-            docx.Packer.toBlob(doc).then(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Ata_MadreBarbara_${dateVal}.docx`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
-        }
-
-        function exportToPDF() {
-            const textContent = textarea.value.trim();
-            if (!textContent) {
-                alert('Não há texto para exportar!');
-                return;
-            }
-
-            document.getElementById('pdfDate').innerText = document.getElementById('headerDate').value || 'Não informada';
-            document.getElementById('pdfInterviewer').innerText = document.getElementById('headerInterviewer').value || 'Não informado';
-            document.getElementById('pdfInterviewee').innerText = document.getElementById('headerInterviewee').value || 'Não informado';
-            document.getElementById('pdfSubject').innerText = document.getElementById('headerSubject').value || 'Não informado';
-            document.getElementById('pdfBody').innerText = textContent;
-
-            const renderArea = document.getElementById('pdfRender
+                        newFinalSegment += event.results[i][0].transcript + ' ';
