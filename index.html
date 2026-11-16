@@ -38,10 +38,13 @@
                     <p class="text-xs text-indigo-200">Transcrição de Entrevistas & Atas | 100% Privado e Local</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                     <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1"></i> Sem Banco de Dados
                 </span>
+                <button onclick="resetForNewRecording()" class="bg-indigo-500 hover:bg-indigo-400 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer border border-indigo-400">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Nova Gravação
+                </button>
                 <button onclick="wipeAllData()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar Tudo
                 </button>
@@ -88,10 +91,14 @@
         <!-- Painel de Controle de Gravação -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <button id="recordBtn" onclick="toggleRecording()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm cursor-pointer">
                         <i data-lucide="mic" id="recordIcon" class="w-5 h-5"></i>
                         <span id="recordText">Iniciar Gravação Contínua</span>
+                    </button>
+                    <button onclick="resetForNewRecording()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition text-sm cursor-pointer">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Nova Gravação</span>
                     </button>
                     <div id="recordingStatus" class="hidden flex items-center gap-2 text-xs font-medium text-rose-600 animate-pulse">
                         <span class="w-2.5 h-2.5 bg-rose-600 rounded-full"></span>
@@ -351,6 +358,29 @@
             lucide.createIcons();
         }
 
+        // Reinicia completamente a página para uma nova gravação limpa
+        function resetForNewRecording() {
+            const hasContent = textarea.value.trim().length > 0 || 
+                               document.getElementById('headerInterviewer').value.trim().length > 0 ||
+                               document.getElementById('headerInterviewee').value.trim().length > 0 ||
+                               document.getElementById('headerSubject').value.trim().length > 0;
+
+            if (hasContent) {
+                if (!confirm('Iniciar uma nova gravação irá atualizar a página e apagar o texto atual. Certifique-se de já ter baixado o arquivo Word. Deseja continuar?')) {
+                    return;
+                }
+            }
+
+            if (isRecording) {
+                isRecording = false;
+                if (recognition) {
+                    try { recognition.stop(); } catch (e) {}
+                }
+            }
+
+            window.location.reload();
+        }
+
         function wipeAllData() {
             if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
                 if (isRecording) stopRecording();
@@ -403,55 +433,4 @@
                                 ]
                             }),
                             new docx.Paragraph({
-                                children: [
-                                    new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
-                                    new docx.TextRun(interviewerVal)
-                                ]
-                            }),
-                            new docx.Paragraph({
-                                children: [
-                                    new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
-                                    new docx.TextRun(intervieweeVal)
-                                ]
-                            }),
-                            new docx.Paragraph({
-                                children: [
-                                    new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
-                                    new docx.TextRun(subjectVal)
-                                ],
-                                spaceAfter: 400
-                            }),
-                            new docx.Paragraph({
-                                children: [
-                                    new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
-                                ],
-                                spaceAfter: 200
-                            }),
-                            ...textContent.split('\n').map(paragraph => 
-                                new docx.Paragraph({
-                                    children: [new docx.TextRun({ text: paragraph, size: 22 })],
-                                    spaceAfter: 150
-                                })
-                            )
-                        ]
-                    }]
-                });
-
-                docx.Packer.toBlob(doc).then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Ata_MadreBarbara_${dateVal}.docx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                });
-            } catch (err) {
-                console.error("Erro Word:", err);
-                alert("Ocorreu um erro ao gerar o documento Word.");
-            }
-        }
-    </script>
-</body>
-</html>
+                                children:
