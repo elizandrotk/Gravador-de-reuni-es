@@ -42,7 +42,7 @@
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                     <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1"></i> Sem Banco de Dados
                 </span>
-                <button onclick="wipeAllData()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium">
+                <button onclick="wipeAllData()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar Tudo
                 </button>
             </div>
@@ -56,7 +56,7 @@
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
             <i data-lucide="lock" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <strong>Privacidade e Transcrição Integral:</strong> O áudio é processado exclusivamente na memória RAM do navegador. A transcrição preserva 100% do que é falado sem intermediários.
+                <strong>Privacidade e Transcrição Blindada:</strong> O áudio é processado exclusivamente na memória RAM do navegador. O sistema trava cada frase falada para garantir que nenhuma palavra seja apagada após pausas.
             </div>
         </div>
 
@@ -95,7 +95,7 @@
                     </button>
                     <div id="recordingStatus" class="hidden flex items-center gap-2 text-xs font-medium text-rose-600 animate-pulse">
                         <span class="w-2.5 h-2.5 bg-rose-600 rounded-full"></span>
-                        Transcrevendo em Tempo Real...
+                        Gravando e Salvando em Tempo Real...
                     </div>
                 </div>
 
@@ -126,7 +126,7 @@
             </div>
             
             <div class="flex-1 p-4 relative">
-                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Clique em 'Iniciar Gravação Contínua' e comece a falar. O texto surgirá aqui em tempo real..."></textarea>
+                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Clique em 'Iniciar Gravação Contínua' e comece a falar. Tudo o que for dito será acumulado aqui sem cortes..."></textarea>
             </div>
 
             <!-- Botão de Exportação Exclusiva para Word -->
@@ -154,10 +154,21 @@
 
         let isRecording = false;
         let recognition = null;
-        let committedText = "";
+        
+        // Variáveis blindadas contra sobrescrita pós-pausa
+        let lockedHistory = "";       // Tudo que já foi consolidado ou salvo antes de pausas
+        let currentInterim = "";      // Apenas o que está sendo falado no exato milissegundo atual
+        let sessionFinalized = "";    // Acumulador final da sessão ativa atual
 
         const textarea = document.getElementById('transcriptText');
-        textarea.addEventListener('input', updateCounts);
+
+        // Se o usuário digitar/editar manualmente no textarea, atualiza a base blindada
+        textarea.addEventListener('input', () => {
+            lockedHistory = textarea.value;
+            sessionFinalized = "";
+            currentInterim = "";
+            updateCounts();
+        });
 
         function updateCounts() {
             const text = textarea.value.trim();
@@ -178,6 +189,16 @@
             document.getElementById('micAlert').classList.add('hidden');
         }
 
+        function formatJoin(base, addition) {
+            const cleanBase = base;
+            const cleanAdd = addition.trim();
+            if (!cleanAdd) return cleanBase;
+            if (!cleanBase) return cleanAdd;
+            
+            const needsSpace = !cleanBase.endsWith(' ') && !cleanBase.endsWith('\n');
+            return cleanBase + (needsSpace ? ' ' : '') + cleanAdd;
+        }
+
         function toggleRecording() {
             if (!isRecording) {
                 startRecording();
@@ -195,11 +216,15 @@
                 return;
             }
 
-            committedText = textarea.value;
-            if (committedText.length > 0 && !committedText.endsWith(' ') && !committedText.endsWith('\n')) {
-                committedText += ' ';
-            }
+            // Tranca tudo o que já estava na caixa de texto antes de iniciar
+            lockedHistory = textarea.value;
+            sessionFinalized = "";
+            currentInterim = "";
 
+            launchRecognitionInstance(SpeechRecognition);
+        }
+
+        function launchRecognitionInstance(SpeechRecognition) {
             try {
                 recognition = new SpeechRecognition();
                 recognition.continuous = true;
@@ -212,23 +237,27 @@
                 };
 
                 recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    let newFinalTranscript = '';
+                    let tempFinal = "";
+                    let tempInterim = "";
 
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        const transcriptSegment = event.results[i][0].transcript;
+                    // Percorre desde o índice 0 da sessão atual para nunca perder palavras
+                    for (let i = 0; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
-                            newFinalTranscript += transcriptSegment + ' ';
+                            tempFinal = formatJoin(tempFinal, transcript);
                         } else {
-                            interimTranscript += transcriptSegment;
+                            tempInterim = formatJoin(tempInterim, transcript);
                         }
                     }
 
-                    if (newFinalTranscript) {
-                        committedText += newFinalTranscript;
-                    }
+                    sessionFinalized = tempFinal;
+                    currentInterim = tempInterim;
 
-                    textarea.value = committedText + interimTranscript;
+                    // Combina o histórico trancado + finalizados da sessão + fala ao vivo
+                    let combined = formatJoin(lockedHistory, sessionFinalized);
+                    combined = formatJoin(combined, currentInterim);
+
+                    textarea.value = combined;
                     updateCounts();
                     textarea.scrollTop = textarea.scrollHeight;
                 };
@@ -246,16 +275,23 @@
                 };
 
                 recognition.onend = () => {
+                    // ANTES DE REINICIAR: Tranca definitivamente tudo que foi falado (inclusive o que estava provisório)
+                    let rescuedText = formatJoin(lockedHistory, sessionFinalized);
+                    rescuedText = formatJoin(rescuedText, currentInterim);
+                    
+                    lockedHistory = rescuedText;
+                    sessionFinalized = "";
+                    currentInterim = "";
+                    textarea.value = lockedHistory;
+                    updateCounts();
+
                     if (isRecording) {
-                        committedText = textarea.value;
-                        if (committedText.length > 0 && !committedText.endsWith(' ')) {
-                            committedText += ' ';
-                        }
-                        try {
-                            recognition.start();
-                        } catch (e) {
-                            console.warn("Reconexão pós-silêncio:", e);
-                        }
+                        // Cria uma nova instância limpa imediatamente para o próximo bloco de fala
+                        setTimeout(() => {
+                            if (isRecording) {
+                                launchRecognitionInstance(SpeechRecognition);
+                            }
+                        }, 50);
                     } else {
                         updateUI(false);
                     }
@@ -273,6 +309,16 @@
 
         function stopRecording() {
             isRecording = false;
+            
+            // Garante que nenhuma palavra provisória se perca ao clicar em parar
+            let finalSaved = formatJoin(lockedHistory, sessionFinalized);
+            finalSaved = formatJoin(finalSaved, currentInterim);
+            lockedHistory = finalSaved;
+            sessionFinalized = "";
+            currentInterim = "";
+            textarea.value = lockedHistory;
+            updateCounts();
+
             if (recognition) {
                 try {
                     recognition.stop();
@@ -280,7 +326,6 @@
                     console.warn("Parando gravação:", e);
                 }
             }
-            committedText = textarea.value;
             updateUI(false);
         }
 
@@ -309,7 +354,9 @@
         function wipeAllData() {
             if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
                 if (isRecording) stopRecording();
-                committedText = "";
+                lockedHistory = "";
+                sessionFinalized = "";
+                currentInterim = "";
                 textarea.value = "";
                 document.getElementById('headerInterviewer').value = "";
                 document.getElementById('headerInterviewee').value = "";
