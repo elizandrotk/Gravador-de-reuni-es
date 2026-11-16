@@ -42,9 +42,6 @@
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                     <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1"></i> Sem Banco de Dados
                 </span>
-                <button onclick="resetForNewRecording()" class="bg-indigo-500 hover:bg-indigo-400 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer border border-indigo-400">
-                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Nova Gravação
-                </button>
                 <button onclick="wipeAllData()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm font-medium cursor-pointer">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar Tudo
                 </button>
@@ -59,7 +56,7 @@
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start gap-3 shadow-sm">
             <i data-lucide="lock" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <strong>Privacidade e Transcrição Blindada:</strong> O áudio é processado exclusivamente na memória RAM do navegador. O sistema trava cada frase falada para garantir que nenhuma palavra seja apagada após pausas.
+                <strong>Privacidade e Transcrição Blindada:</strong> O áudio é processado exclusivamente na memória RAM do navegador. Você pode pausar e continuar a gravação livremente sem perder nenhuma palavra já registrada.
             </div>
         </div>
 
@@ -92,17 +89,26 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex flex-wrap items-center gap-3">
+                    <!-- Botão Principal: Iniciar / Pausar / Continuar -->
                     <button id="recordBtn" onclick="toggleRecording()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm cursor-pointer">
                         <i data-lucide="mic" id="recordIcon" class="w-5 h-5"></i>
-                        <span id="recordText">Iniciar Gravação Contínua</span>
+                        <span id="recordText">Iniciar Gravação</span>
                     </button>
+
+                    <!-- Botão ao lado: Nova Gravação -->
                     <button onclick="resetForNewRecording()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition text-sm cursor-pointer">
-                        <i data-lucide="refresh-cw" class="w-4 h-4 text-indigo-600"></i>
+                        <i data-lucide="rotate-ccw" class="w-4 h-4 text-indigo-600"></i>
                         <span>Nova Gravação</span>
                     </button>
+
+                    <!-- Indicador de Status -->
                     <div id="recordingStatus" class="hidden flex items-center gap-2 text-xs font-medium text-rose-600 animate-pulse">
                         <span class="w-2.5 h-2.5 bg-rose-600 rounded-full"></span>
-                        Gravando e Salvando em Tempo Real...
+                        Gravando em Tempo Real...
+                    </div>
+                    <div id="pausedStatus" class="hidden flex items-center gap-2 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                        <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                        Gravação Pausada
                     </div>
                 </div>
 
@@ -133,7 +139,7 @@
             </div>
             
             <div class="flex-1 p-4 relative">
-                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Clique em 'Iniciar Gravação Contínua' e comece a falar. Tudo o que for dito será acumulado aqui sem cortes..."></textarea>
+                <textarea id="transcriptText" class="w-full h-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none resize-none leading-relaxed custom-scrollbar" placeholder="Clique em 'Iniciar Gravação' e comece a falar. Você pode pausar a qualquer momento e continuar depois sem perder o texto..."></textarea>
             </div>
 
             <!-- Botão de Exportação Exclusiva para Word -->
@@ -159,17 +165,18 @@
         lucide.createIcons();
         document.getElementById('headerDate').valueAsDate = new Date();
 
-        let isRecording = false;
+        // Estados da gravação: 'idle' (parado/inicial), 'recording' (gravando), 'paused' (pausado)
+        let recordingState = 'idle';
         let recognition = null;
         
         // Variáveis blindadas contra sobrescrita pós-pausa
-        let lockedHistory = "";       // Tudo que já foi consolidado ou salvo antes de pausas
-        let currentInterim = "";      // Apenas o que está sendo falado no exato milissegundo atual
-        let sessionFinalized = "";    // Acumulador final da sessão ativa atual
+        let lockedHistory = "";
+        let currentInterim = "";
+        let sessionFinalized = "";
 
         const textarea = document.getElementById('transcriptText');
 
-        // Se o usuário digitar/editar manualmente no textarea, atualiza a base blindada
+        // Sincroniza edições manuais feitas diretamente no campo de texto
         textarea.addEventListener('input', () => {
             lockedHistory = textarea.value;
             sessionFinalized = "";
@@ -207,14 +214,14 @@
         }
 
         function toggleRecording() {
-            if (!isRecording) {
-                startRecording();
-            } else {
-                stopRecording();
+            if (recordingState === 'idle' || recordingState === 'paused') {
+                startOrResumeRecording();
+            } else if (recordingState === 'recording') {
+                pauseRecording();
             }
         }
 
-        function startRecording() {
+        function startOrResumeRecording() {
             hideAlert();
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
@@ -223,7 +230,7 @@
                 return;
             }
 
-            // Tranca tudo o que já estava na caixa de texto antes de iniciar
+            // Consolida tudo o que já está na caixa de texto antes de iniciar/retomar
             lockedHistory = textarea.value;
             sessionFinalized = "";
             currentInterim = "";
@@ -239,15 +246,14 @@
                 recognition.lang = document.getElementById('languageSelect').value;
 
                 recognition.onstart = () => {
-                    isRecording = true;
-                    updateUI(true);
+                    recordingState = 'recording';
+                    updateUI('recording');
                 };
 
                 recognition.onresult = (event) => {
                     let tempFinal = "";
                     let tempInterim = "";
 
-                    // Percorre desde o índice 0 da sessão atual para nunca perder palavras
                     for (let i = 0; i < event.results.length; ++i) {
                         const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
@@ -260,7 +266,6 @@
                     sessionFinalized = tempFinal;
                     currentInterim = tempInterim;
 
-                    // Combina o histórico trancado + finalizados da sessão + fala ao vivo
                     let combined = formatJoin(lockedHistory, sessionFinalized);
                     combined = formatJoin(combined, currentInterim);
 
@@ -275,14 +280,14 @@
 
                     if (event.error === 'not-allowed') {
                         showAlert("O acesso ao microfone foi negado pelo navegador. Clique no ícone de cadeado/microfone na barra de endereços e selecione 'Permitir'.");
-                        stopRecording();
+                        pauseRecording();
                     } else if (event.error === 'network') {
                         showAlert("Falha de rede ao se conectar com o serviço de voz. Verifique sua conexão à internet.");
                     }
                 };
 
                 recognition.onend = () => {
-                    // ANTES DE REINICIAR: Tranca definitivamente tudo que foi falado (inclusive o que estava provisório)
+                    // Salva imediatamente qualquer fragmento falado antes de reiniciar ou pausar
                     let rescuedText = formatJoin(lockedHistory, sessionFinalized);
                     rescuedText = formatJoin(rescuedText, currentInterim);
                     
@@ -292,15 +297,12 @@
                     textarea.value = lockedHistory;
                     updateCounts();
 
-                    if (isRecording) {
-                        // Cria uma nova instância limpa imediatamente para o próximo bloco de fala
+                    if (recordingState === 'recording') {
                         setTimeout(() => {
-                            if (isRecording) {
+                            if (recordingState === 'recording') {
                                 launchRecognitionInstance(SpeechRecognition);
                             }
                         }, 50);
-                    } else {
-                        updateUI(false);
                     }
                 };
 
@@ -309,15 +311,15 @@
             } catch (err) {
                 console.error("Erro ao iniciar captura:", err);
                 showAlert("Não foi possível acessar o microfone. Verifique se outro aplicativo não está usando o microfone.");
-                isRecording = false;
-                updateUI(false);
+                recordingState = textarea.value.trim().length > 0 ? 'paused' : 'idle';
+                updateUI(recordingState);
             }
         }
 
-        function stopRecording() {
-            isRecording = false;
+        function pauseRecording() {
+            recordingState = 'paused';
             
-            // Garante que nenhuma palavra provisória se perca ao clicar em parar
+            // Tranca definitivamente tudo que foi falado até o clique de pausa
             let finalSaved = formatJoin(lockedHistory, sessionFinalized);
             finalSaved = formatJoin(finalSaved, currentInterim);
             lockedHistory = finalSaved;
@@ -330,35 +332,48 @@
                 try {
                     recognition.stop();
                 } catch (e) {
-                    console.warn("Parando gravação:", e);
+                    console.warn("Pausando gravação:", e);
                 }
             }
-            updateUI(false);
+            updateUI('paused');
         }
 
-        function updateUI(active) {
+        function updateUI(state) {
             const recordBtn = document.getElementById('recordBtn');
             const recordText = document.getElementById('recordText');
             const recordIcon = document.getElementById('recordIcon');
             const recordingStatus = document.getElementById('recordingStatus');
+            const pausedStatus = document.getElementById('pausedStatus');
 
-            if (active) {
-                recordBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            // Limpa cores anteriores
+            recordBtn.classList.remove(
+                'bg-indigo-600', 'hover:bg-indigo-700',
+                'bg-rose-600', 'hover:bg-rose-700',
+                'bg-emerald-600', 'hover:bg-emerald-700'
+            );
+
+            if (state === 'recording') {
                 recordBtn.classList.add('bg-rose-600', 'hover:bg-rose-700');
-                recordText.innerText = 'Parar Gravação';
-                recordIcon.setAttribute('data-lucide', 'square');
+                recordText.innerText = 'Pausar Gravação';
+                recordIcon.setAttribute('data-lucide', 'pause');
                 recordingStatus.classList.remove('hidden');
+                pausedStatus.classList.add('hidden');
+            } else if (state === 'paused') {
+                recordBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                recordText.innerText = 'Continuar Gravação';
+                recordIcon.setAttribute('data-lucide', 'play');
+                recordingStatus.classList.add('hidden');
+                pausedStatus.classList.remove('hidden');
             } else {
-                recordBtn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
                 recordBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-                recordText.innerText = 'Iniciar Gravação Contínua';
+                recordText.innerText = 'Iniciar Gravação';
                 recordIcon.setAttribute('data-lucide', 'mic');
                 recordingStatus.classList.add('hidden');
+                pausedStatus.classList.add('hidden');
             }
             lucide.createIcons();
         }
 
-        // Reinicia completamente a página para uma nova gravação limpa
         function resetForNewRecording() {
             const hasContent = textarea.value.trim().length > 0 || 
                                document.getElementById('headerInterviewer').value.trim().length > 0 ||
@@ -366,13 +381,13 @@
                                document.getElementById('headerSubject').value.trim().length > 0;
 
             if (hasContent) {
-                if (!confirm('Iniciar uma nova gravação irá atualizar a página e apagar o texto atual. Certifique-se de já ter baixado o arquivo Word. Deseja continuar?')) {
+                if (!confirm('Iniciar uma nova gravação irá limpar a tela para a próxima entrevista. Certifique-se de já ter baixado o arquivo Word. Deseja continuar?')) {
                     return;
                 }
             }
 
-            if (isRecording) {
-                isRecording = false;
+            if (recordingState === 'recording') {
+                recordingState = 'idle';
                 if (recognition) {
                     try { recognition.stop(); } catch (e) {}
                 }
@@ -383,7 +398,10 @@
 
         function wipeAllData() {
             if (confirm('Deseja apagar todos os dados inseridos e gravados?')) {
-                if (isRecording) stopRecording();
+                recordingState = 'idle';
+                if (recognition) {
+                    try { recognition.stop(); } catch (e) {}
+                }
                 lockedHistory = "";
                 sessionFinalized = "";
                 currentInterim = "";
@@ -394,6 +412,7 @@
                 document.getElementById('headerDate').valueAsDate = new Date();
                 updateCounts();
                 hideAlert();
+                updateUI('idle');
             }
         }
 
@@ -433,4 +452,55 @@
                                 ]
                             }),
                             new docx.Paragraph({
-                                children:
+                                children: [
+                                    new docx.TextRun({ text: "Entrevistador(a): ", bold: true }),
+                                    new docx.TextRun(interviewerVal)
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Entrevistado(a): ", bold: true }),
+                                    new docx.TextRun(intervieweeVal)
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "Motivo / Assunto: ", bold: true }),
+                                    new docx.TextRun(subjectVal)
+                                ],
+                                spaceAfter: 400
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: "TRANSCRIÇÃO INTEGRAL DA CONVERSA", bold: true, size: 22, color: "4338CA" })
+                                ],
+                                spaceAfter: 200
+                            }),
+                            ...textContent.split('\n').map(paragraph => 
+                                new docx.Paragraph({
+                                    children: [new docx.TextRun({ text: paragraph, size: 22 })],
+                                    spaceAfter: 150
+                                })
+                            )
+                        ]
+                    }]
+                });
+
+                docx.Packer.toBlob(doc).then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Ata_MadreBarbara_${dateVal}.docx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            } catch (err) {
+                console.error("Erro Word:", err);
+                alert("Ocorreu um erro ao gerar o documento Word.");
+            }
+        }
+    </script>
+</body>
+</html>
